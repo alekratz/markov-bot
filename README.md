@@ -1,6 +1,6 @@
 Markov-bot
 =
-Read more in the [Rundown](#Rundown) section.
+Read more in the [Rundown](#rundown) section.
 
 Markov chains are written in Java.
 
