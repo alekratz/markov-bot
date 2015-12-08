@@ -187,19 +187,21 @@ public class MarkovChain {
 		
 		root.forEach((wordObj, valueObj) -> {
             MarkovQueue queue = new MarkovQueue(((String) wordObj).split(" "));
-            if(queue.getOrder() != getOrder() && getOrder() == 1 && count() == 0) {
-                // if the order is equal to 1, and there hasn't been anything added to the chain yet, then we can infer
-                // that the order is going to be the same order as the queue
-                order = queue.getOrder();
-            } else {
-                // TODO: make this message less confusing
-                throw new RuntimeException("Mismatched Markov chain order; " + path + " order is " + queue.getOrder() +
-                        " versus established order of " + order);
-            }
+            if(queue.getOrder() != getOrder()) {
+				if (getOrder() == 1 && count() == 0) {
+					// if the order is equal to 1, and there hasn't been anything added to the chain yet, then we can infer
+					// that the order is going to be the same order as the queue
+					order = queue.getOrder();
+				} else {
+					// TODO: make this message less confusing
+					throw new RuntimeException("Mismatched Markov chain order; " + path + " order is " + queue.getOrder() +
+							" versus established order of " + order);
+				}
+			}
             JSONObject value = (JSONObject)valueObj;
             Weighttable weights = new Weighttable();
             value.forEach((word, weight) -> {
-                weights.addWeight((String)word, (Integer)weight);
+                weights.addWeight((String)word, ((Long)weight).intValue());
             });
             chain.put(queue, weights);
         });
