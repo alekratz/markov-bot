@@ -113,19 +113,27 @@ class MarkovBot(val saveInterval: Int, val shouldsave: Boolean, val savedirector
         return true
     }
 
-    private fun saveChains() {
-        println("Saving markov chains")
+    private fun getChainDirFile(): File? {
         // make sure directory exists
         val dir = File(saveDirectory)
         if(dir.exists() && dir.isFile) {
             println("Error: file with name $saveDirectory already exists, not as a directory.")
-            println("Skipped saving chains")
-            return
+            return null
         } else if(!dir.exists() && !dir.mkdir()) {
             println("Error: could not make $saveDirectory, make sure you have write permissions in the current directory.")
+            return null
+        }
+
+        return dir
+    }
+
+    private fun saveChains() {
+        println("Saving markov chains")
+        if(getChainDirFile() == null) {
             println("Skipped saving chains")
             return
         }
+
         for(nickname in chainMap.keys) {
             println("Saving chain for $nickname")
             val chain = chainMap[nickname]
@@ -135,16 +143,12 @@ class MarkovBot(val saveInterval: Int, val shouldsave: Boolean, val savedirector
 
     private fun loadChains() {
         println("Loading markov chains")
-        val dir = File(saveDirectory)
-        if(dir.exists() && dir.isFile) {
-            println("Error: file with name $saveDirectory already exists, not as a directory.")
-            println("Skipped loading chains")
-            return
-        } else if(!dir.exists() && !dir.mkdir()) {
-            println("Error: could not make $saveDirectory, make sure you have write permissions in the current directory.")
+        val dir = getChainDirFile()
+        if(dir == null) {
             println("Skipped loading chains")
             return
         }
+
         for(path in dir.listFiles({ f -> f.extension == "json" }).orEmpty()) {
             val nickname = path.name.split(".")[0]
             println("Loading chain for $nickname")
