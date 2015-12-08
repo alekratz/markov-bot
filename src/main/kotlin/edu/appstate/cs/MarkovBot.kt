@@ -11,15 +11,19 @@ import java.util.*
  * @author Alek Ratzloff <alekratz@gmail.com>
  *     Documentation on pircbotx: http://thelq.github.io/pircbotx/latest/apidocs/
  */
-class MarkovBot(val saveInterval: Int, val shouldsave: Boolean) : ListenerAdapter<PircBotX>() {
+class MarkovBot(val saveInterval: Int, val shouldsave: Boolean, val savedirectory: String) : ListenerAdapter<PircBotX>() {
     var present: Boolean = false
     val chainMap: HashMap<String, MarkovChain> = HashMap()
     val ignoreList: HashSet<String> = HashSet()
     val gen: Random = Random()
     val saveEvery = saveInterval
     val shouldSave = shouldsave
-    val saveDirectory = "chains"
+    val saveDirectory = savedirectory
     var messageCount = 0
+
+    init {
+        loadChains()
+    }
 
     public override fun onGenericMessage(event: GenericMessageEvent<PircBotX>) {
         println("${event.user.nick} : ${event.message}")
@@ -128,6 +132,27 @@ class MarkovBot(val saveInterval: Int, val shouldsave: Boolean) : ListenerAdapte
             chain?.saveToFile("$saveDirectory/$nickname.json")
         }
     }
+
+    private fun loadChains() {
+        println("Loading markov chains")
+        val dir = File(saveDirectory)
+        if(dir.exists() && dir.isFile) {
+            println("Error: file with name $saveDirectory already exists, not as a directory.")
+            println("Skipped loading chains")
+            return
+        } else if(!dir.exists() && !dir.mkdir()) {
+            println("Error: could not make $saveDirectory, make sure you have write permissions in the current directory.")
+            println("Skipped loading chains")
+            return
+        }
+        for(path in dir.listFiles({ f -> f.extension == "json" }).orEmpty()) {
+            val nickname = path.name.split(".")[0]
+            println("Loading chain for $nickname")
+            val chain = MarkovChain()
+            chain.loadFromFile(path.canonicalPath)
+            chainMap[nickname] = chain
+        }
+    }
 }
 
 fun PircBotX.getFirstChannel(): String? {
@@ -145,9 +170,11 @@ server = chat.freenode.net
 # Required. The channel to join. Must include the leading #
 channel =
 # Optional. Default true. Determines if the bot should save markov chains.
-should-save = true
-# Optional. Default 100. The amount of messages received in between markov chain saves
-save-every = 100
+# should-save = true
+# Optional. Default 20. The amount of messages received in between markov chain saves
+# save-every = 20
+# Optional. Default chains. The location to save markov chains to.
+# save-directory = chains
 """
     val propsPath = "markov-bot.properties"
     val propsFile = File(propsPath)
@@ -167,6 +194,7 @@ save-every = 100
     val defaultProps = Properties()
     defaultProps.setProperty("should-save", "true")
     defaultProps.setProperty("save-every", "100")
+    defaultProps.setProperty("save-directory", "chains")
 
     val props = Properties(defaultProps)
     props.load(propsFile.bufferedReader())
@@ -193,7 +221,9 @@ fun main(args: Array<String>) {
             .addAutoJoinChannel(props.getProperty("channel"))
             .addListener(MarkovBot(
                     props.getProperty("save-every").toInt(),
-                    props.getProperty("should-save").toBoolean()))
+                    props.getProperty("should-save").toBoolean(),
+                    props.getProperty("save-directory")
+                    ))
             .buildConfiguration()
 
     val bot = PircBotX(config)
