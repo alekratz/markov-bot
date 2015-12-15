@@ -237,7 +237,7 @@ freenode.hostname = chat.freenode.net
         // I know this is kinda inefficient, but we can fix that later. Maybe make a custom overridden Properties method?
         val shouldSave = props.getProperty("$serverName.should-save") ?: props.getProperty("should-save")
         val saveEvery = props.getProperty("$serverName.save-every") ?: props.getProperty("save-every")
-        val saveDirectory = props.getProperty("$serverName.save-directory") ?: "$serverName/chains"
+        val saveDirectory = props.getProperty("$serverName.save-directory") ?: "chains/$serverName"
         val port = props.getProperty("$serverName.port") ?: "6667"
         val ssl = props.getProperty("$serverName.ssl") ?: "false"
         props.setProperty("$serverName.should-save", shouldSave)
