@@ -19,7 +19,8 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String) : Li
     val gen: Random = Random()
 
     val saveDirectory = saveDirectory
-    val saveThread = Thread(MessageSaver(chainMap, saveDirectory, saveEvery))
+    val saver = MessageSaver(chainMap, saveDirectory, saveEvery)
+    val saveThread = Thread(saver)
 
     init {
         loadChains()
@@ -54,6 +55,7 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String) : Li
             chainMap.putIfAbsent(name, MarkovChain())
             val chain = chainMap[name]
             chain!!.train(msg) // choo choo
+            saver.needsUpdate = true
         }
 
         // also, 1/100 chance to send a random markov chain generated message

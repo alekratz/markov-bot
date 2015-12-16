@@ -14,6 +14,7 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
     val chainMap = chainMap
     val saveDirectory = saveDirectory
     val sleepTime = sleepTime * 1000
+    var needsUpdate = false
 
     override fun run() {
         var interrupted = false
@@ -29,6 +30,13 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
     }
 
     private fun saveChains() {
+        if(needsUpdate) {
+            needsUpdate = false
+        } else {
+            println("No new messages to save - skipping")
+            return
+        }
+
         println("Saving markov chains")
         if(getChainDirFile() == null) {
             println("Skipped saving chains")

@@ -23,7 +23,7 @@ class CatchCtrlC : Runnable {
  */
 fun loadProperties(): Properties {
     val propsTemplate =
-            """# Required. A comma-separated list of servers that the bot uses. These each have their own subsections.
+"""# Required. A comma-separated list of servers that the bot uses. These each have their own subsections.
 servers = freenode
 
 # Required for each server. A comma-separated list of channels that the bot will be a part of.
