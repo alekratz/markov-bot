@@ -1,4 +1,4 @@
-package edu.appstate.cs;
+package edu.appstate.cs.markovbot;
 
 import java.io.File;
 import java.io.FileNotFoundException;

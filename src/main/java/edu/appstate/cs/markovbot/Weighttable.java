@@ -1,4 +1,4 @@
-package edu.appstate.cs;
+package edu.appstate.cs.markovbot;
 
 import java.util.Hashtable;
 import java.util.Random;
