@@ -39,8 +39,8 @@ freenode.hostname = chat.freenode.net
 # freenode.should-save = true
 # freenode.java.should-save = false
 
-# Optional. Default 20. The amount of messages received in between markov chain saves. This may be set per-server, or per-channel.
-# freenode.save-every = 20
+# Optional. Default 20. The number of seconds in between markov chain saves. This is set per-server.
+# freenode.save-every = 3600
 # freenode.myroom.save-every = 100
 
 # Optional. Default servername/chains. The location to save markov chains to. This may be set per-server, or per-channel.
