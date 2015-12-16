@@ -8,6 +8,8 @@ import java.io.File
 import java.util.*
 import javax.net.ssl.SSLSocketFactory
 
+internal const val ALL_CHAIN = "/"
+
 /**
  * @author Alek Ratzloff <alekratz@gmail.com>
  *     Documentation on pircbotx: http://thelq.github.io/pircbotx/latest/apidocs/
@@ -15,6 +17,20 @@ import javax.net.ssl.SSLSocketFactory
 class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String) : ListenerAdapter<PircBotX>() {
     var present: Boolean = false
     val chainMap: HashMap<String, MarkovChain> = HashMap()
+    val allChain: MarkovChain
+        get() {
+            synchronized(chainMap) {
+                if (chainMap[ALL_CHAIN] == null) {
+                    println("Constructing all-chain")
+                    val allChain = MarkovChain()
+                    for(nick in chainMap.keys)
+                        allChain.merge(chainMap[nick])
+                    chainMap[ALL_CHAIN] = allChain
+                }
+            }
+
+            return chainMap[ALL_CHAIN]!!
+        }
     val ignoreList: HashSet<String> = HashSet()
     val gen: Random = Random()
 
@@ -53,9 +69,13 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String) : Li
 
         synchronized(chainMap) {
             chainMap.putIfAbsent(name, MarkovChain())
-            val chain = chainMap[name]
-            chain!!.train(msg) // choo choo
+            val chain = chainMap[name]!!
+            chain.train(msg) // choo choo
             saver.needsUpdate = true
+        }
+
+        synchronized(allChain) {
+            allChain.train(msg)
         }
 
         // also, 1/100 chance to send a random markov chain generated message
@@ -105,10 +125,16 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String) : Li
                     bot.sendIRC().message(channel, "$sendNick: $sentence")
                 }
             }
+            "!markov-all" -> {
+                val channel = bot.getFirstChannel() ?: return false
+                val markovChain = allChain
+                val sentence = markovChain.generateSentence()
+                bot.sendIRC().message(channel, "$sendNick: $sentence")
+            }
             "!markov-help" -> {
                 val channel = bot.getFirstChannel() ?: return false
                 bot.sendIRC().message(channel,
-                        "available commands: !markov-ignore !markov-listen")
+                        "available commands: !markov-ignore !markov-listen !markov-all")
             }
             else -> return false
         }

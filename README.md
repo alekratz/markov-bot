@@ -11,7 +11,7 @@ A few TODOs:
 * [x] Multithreaded markov chain saving
 * [x] Add main class to the compiled jar so we can just use `java -jar target/markov-bot-1.0-SNAPSHOT.jar`
 * [ ] SSL support
-* [ ] `!markov-all` command that forces a message generated from all messages recorded on this channel
+* [x] `!markov-all` command that forces a message generated from all messages recorded on this channel
 
 A few ideas if someone feels like implementing them:
 * [ ] Restructure commands to be something along the line of `!markov [command] [args]` to make things more extensive.
