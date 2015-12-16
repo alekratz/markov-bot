@@ -13,6 +13,10 @@ A few TODOs:
 * [ ] SSL support
 * [ ] `!markov-all` command that forces a message generated from all messages recorded on this channel
 
+A few ideas if someone feels like implementing them:
+* [ ] Restructure commands to be something along the line of `!markov [command] [args]` to make things more extensive.
+* [ ] Nameserver registration and login methods
+
 Rundown
 =
 This bot records everything everyone says in an IRC channel. Each message sent has a 1/100 random chance to make the IRC bot reply with a markov chain. Actual order of words/messages is not recorded, just the frequency of each word. Channel users may use the following commands to control how the bot interacts with them:
