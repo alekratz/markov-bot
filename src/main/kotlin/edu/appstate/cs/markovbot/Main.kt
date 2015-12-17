@@ -58,7 +58,8 @@ freenode.hostname = chat.freenode.net
 # Optional. Default false. Determines whether to use SSL or not for a server.
 # freenode.ssl = false
 
-# Optional. Default none. Defines a password to send to nickserv for authentication.
+# Optional. Default none. Defines a password to send to the nickserv for authentication.
+# If you don't want a password, DO NOT set this to blank; just comment it out.
 # freenode.password =
 """
     val propsPath = "markov-bot.properties"
@@ -171,7 +172,10 @@ fun main(args: Array<String>) {
         }
 
         // Create the final config and start the bot
-        val config = configBuilder.buildConfiguration()
+        val nickServPassword = props.getProperty("$serverName.password")
+        val config = configBuilder
+                .setNickservPassword(nickServPassword)
+                .buildConfiguration()
         val bot = PircBotX(config)
         bot.stopBotReconnect()
         val botThread = Thread(PircBotRunner(bot))
