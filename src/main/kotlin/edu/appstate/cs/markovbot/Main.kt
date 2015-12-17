@@ -152,7 +152,7 @@ fun main(args: Array<String>) {
             val chainMap = chainSaves[saveDirectory] ?: SaveInfo(saveEvery, HashMap())
             configBuilder
                     .addAutoJoinChannel(channelName)
-                    .addListener(MarkovBot(
+                    .addListener(MessageListener(
                             channelName,
                             saveDirectory,
                             randomChance,

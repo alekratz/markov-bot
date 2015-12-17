@@ -13,7 +13,7 @@ internal const val ALL_CHAIN = "/"
  * @author Alek Ratzloff <alekratz@gmail.com>
  *     Documentation on pircbotx: http://thelq.github.io/pircbotx/latest/apidocs/
  */
-class MarkovBot(channel: String, saveDirectory: String, randomChance: Double, chainMap: HashMap<String, MarkovChain>) : ListenerAdapter<PircBotX>() {
+class MessageListener(channel: String, saveDirectory: String, randomChance: Double, chainMap: HashMap<String, MarkovChain>) : ListenerAdapter<PircBotX>() {
     /**
      * Determines if the bot is in the room it is supposed to be in yet.
      */
@@ -46,81 +46,12 @@ class MarkovBot(channel: String, saveDirectory: String, randomChance: Double, ch
     val saveDirectory = saveDirectory
     val randomChance = randomChance
 
-    val commandMap = HashMap<String, (Array<String>, MessageEvent<PircBotX>) -> Boolean>()
-
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>
-     *     Constructor for the markov bot. This loads up the necessary markov chains with the specified directory,
-     *     starts up the message saver background thread if necessary, and sets up markov chain commands.
+     *     Constructor for the markov bot. This loads up the necessary markov chains with the specified directory.
      */
     init {
         loadChains()
-
-        // Set up commands here
-        commandMap["ignore"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
-            val bot = event.bot
-            val sendNick = event.user.nick
-            ignoreList.add(sendNick)
-            bot.sendIRC().message(sendNick, "You are now being ignored. You can reverse this by " +
-                    "using !markov-listen.")
-            return true
-        }
-
-        commandMap["listen"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
-            val bot = event.bot
-            val sendNick = event.user.nick
-            ignoreList.remove(sendNick)
-            bot.sendIRC().message(sendNick, "You are now being recorded. You can reverse this by " +
-                    "using !markov-ignore.")
-            return true
-        }
-
-        commandMap["force"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
-            val bot = event.bot
-            val sendNick = event.user.nick
-            val markovChain = chainMap[sendNick]
-            if(markovChain != null) {
-                val sentence = markovChain.generateSentence()
-                bot.sendIRC().message(channel, "$sendNick: $sentence")
-            }
-            return true
-        }
-
-        commandMap["all"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
-            val bot = event.bot
-            val sendNick = event.user.nick
-            val markovChain = allChain
-            val sentence = markovChain.generateSentence()
-            bot.sendIRC().message(channel, "$sendNick: $sentence")
-            return true
-        }
-
-        commandMap["about"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
-            val bot = event.bot
-            val aboutMessage = """markov-bot ${VersionInfo.STR}
-source located at https://github.com/alekratz/markov-bot"""
-
-            val sendNick = event.user.nick
-            for(line in aboutMessage.split("\n"))
-                bot.sendIRC().message(sendNick, line)
-            return true
-        }
-
-        commandMap["help"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
-            val bot = event.bot
-            val helpMessage = """usage: !markov [COMMAND]
-where COMMANDs consist of:
-    ignore  - stops the markov bot from listening to your messages
-    listen  - starts the bot listening to your messages again
-    force   - forces a markov chain to be generated based on what the markov bot has seen from you
-    all     - forces a markov chain to be generated based on the collective of everything everyone has said
-    about   - about the markov bot and version information"""
-
-            val sendNick = event.user.nick
-            for(line in helpMessage.split("\n"))
-                bot.sendIRC().message(sendNick, line)
-            return true
-        }
     }
 
     /**
@@ -139,10 +70,7 @@ where COMMANDs consist of:
             return
 
         // command was handled
-        if(doCommand(event))
-            return
-
-        val name = event.user.nick
+        if(CommandHandler.doCommand(event, this)) return
 
         // ensure that the message ends in some sort of symbol. otherwise paste in a period at the end
         val msg = if(event.message.endsWith(".") || event.message.endsWith("!") || event.message.endsWith("?")) {
@@ -151,9 +79,10 @@ where COMMANDs consist of:
             event.message + "."
         }
 
+        val sendNick = event.user.nick
         synchronized(chainMap) {
-            chainMap.putIfAbsent(name, MarkovChain())
-            val chain = chainMap[name]!!
+            chainMap.putIfAbsent(sendNick, MarkovChain())
+            val chain = chainMap[sendNick]!!
             chain.train(msg) // choo choo
         }
 
@@ -163,7 +92,6 @@ where COMMANDs consist of:
 
         // random chance that a markov chain will be generated
         if(gen.nextDouble() < randomChance) {
-            val sendNick = event.user.nick
             val markovChain = chainMap[sendNick]
             if(markovChain != null) {
                 val sentence = markovChain.generateSentence()
@@ -184,39 +112,6 @@ where COMMANDs consist of:
             present = true
             println("Joined channel $joinedChannel")
         }
-    }
-
-    /**
-     * @author Alek Ratzloff <alekratz@gmail.com>
-     *     Handles a command if the message sent actually is a command.
-     * @return true on successful command execution, false if it was not a command or the command failed.
-     */
-    public fun doCommand(event: MessageEvent<PircBotX>): Boolean {
-        val commands = event.message.split(" ")
-        fun catchall(): Boolean {
-            return commandMap["help"]!!(commands.drop(2).toTypedArray(), event)
-        }
-
-        if(event.channel.name != channel) {
-            return false
-        } else if (commands.size < 1) {
-            return catchall()
-        } else if (commands[0].startsWith("!markov-")) {
-            val bot = event.bot
-            val sendNick = event.user.nick
-            bot.sendIRC().message(channel, "$sendNick : !markov-* commands have been deprecated. Use the new ones instead.")
-            return catchall()
-        } else if (commands[0] != "!markov") {
-            return false
-        } else if(commands.size < 2) {
-            return catchall()
-        }
-
-        // Split up the commands
-        val command = commands[1]
-        val commandEvent = commandMap[command] ?: return catchall()
-
-        return commandEvent(commands.drop(2).toTypedArray(), event)
     }
 
     /**
