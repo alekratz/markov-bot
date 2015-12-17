@@ -17,6 +17,12 @@ internal const val ALL_CHAIN = "/"
 class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String, randomChance: Double) : ListenerAdapter<PircBotX>() {
     var present: Boolean = false
     val chainMap: HashMap<String, MarkovChain> = HashMap()
+
+    /**
+     * @author Alek Ratzloff <alekratz@gmail.com>
+     *     This is complex to instantiate and doesn't make much sense to instantiate if nobody is using the !markov all
+     *     command. This is instantiated on demand (maybe make it lazy?)
+     */
     val allChain: MarkovChain
         get() {
             synchronized(chainMap) {
@@ -41,6 +47,11 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String, rand
 
     val commandMap = HashMap<String, (Array<String>, GenericMessageEvent<PircBotX>) -> Boolean>()
 
+    /**
+     * @author Alek Ratzloff <alekratz@gmail.com>
+     *     Constructor for the markov bot. This loads up the necessary markov chains with the specified directory,
+     *     starts up the message saver background thread if necessary, and sets up markov chain commands.
+     */
     init {
         loadChains()
 
@@ -118,6 +129,11 @@ where COMMANDs consist of:
         }
     }
 
+    /**
+     * @author Alek Ratzloff <alekratz@gmail.com>
+     *     Handler for a generic message. It routes the message to the correct place if need be (i.e. is a command for
+     *     a bot), and records the user's message into their markov chain if it's not a command.
+     */
     public override fun onGenericMessage(event: GenericMessageEvent<PircBotX>) {
         val serverName = event.bot.serverInfo.serverName
         println("$serverName ${event.user.nick} : ${event.message}")
@@ -161,6 +177,11 @@ where COMMANDs consist of:
         }
     }
 
+    /**
+     * @author Alek Ratzloff <alekratz@gmail.com>
+     *     Handler for when the bot joins the room. This mostly important to determine whether the bot is present and
+     *     thus should listen to messages.
+     */
     public override fun onJoin(event: JoinEvent<PircBotX>) {
         if(event.user.nick == event.bot.nick) {
             present = true
@@ -168,6 +189,11 @@ where COMMANDs consist of:
         }
     }
 
+    /**
+     * @author Alek Ratzloff <alekratz@gmail.com>
+     *     Handles a command if the message sent actually is a command.
+     * @return true on successful command execution, false if it was not a command or the command failed.
+     */
     public fun doCommand(event: GenericMessageEvent<PircBotX>): Boolean {
         val commands = event.message.split(" ")
         fun catchall(): Boolean {
@@ -195,6 +221,11 @@ where COMMANDs consist of:
         return commandEvent(commands.drop(2).toTypedArray(), event)
     }
 
+    /**
+     * @author Alek Ratzloff <alekratz@gmail.com>
+     *     Gets the chain directory for this listener, provided that it exists. If it doesn't exists it will make it.
+     * @return a file object of the chain save/load directory. If it cannot be created, returns null.
+     */
     private fun getChainDirFile(): File? {
         // make sure directory exists
         val dir = File(saveDirectory)
@@ -209,6 +240,10 @@ where COMMANDs consist of:
         return dir
     }
 
+    /**
+     * @author Alek Ratzloff <alekratz@gmail.com>
+     *     Loads the set of markov chains from the save/load directory.
+     */
     private fun loadChains() {
         println("Loading markov chains")
         val dir = getChainDirFile()
@@ -229,6 +264,12 @@ where COMMANDs consist of:
     }
 }
 
+/**
+ * @author Alek Ratzloff <alekratz@gmail.com>
+ *     Gets the first channel from a bot. This is useful for figuring out where to send a message, but should become
+ *     deprecated soon, as the channel should be tied to the listener, not to the bot.
+ *     TODO : deprecate this
+ */
 fun PircBotX.getFirstChannel(): String? {
     for(channel in userBot.channels)
         return channel.name
