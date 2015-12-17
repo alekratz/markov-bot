@@ -42,16 +42,14 @@ freenode.nickname = markovbot
 # Required. The hostname of the server that you will be operating on.
 freenode.hostname = chat.freenode.net
 
-# Optional. Default true. Determines if the bot should save markov chains. This may be set per-server, or per-channel.
-# freenode.should-save = true
-# freenode.java.should-save = false
-
-# Optional. Default 20. The number of seconds in between markov chain saves. This is set per-server.
+# Optional. Default 20. The number of seconds in between markov chain saves. This can be set per-server or per-channel.
 # freenode.save-every = 3600
-# freenode.myroom.save-every = 1800
+# freenode.#myroom.save-every = 1800
 
 # Optional. Default servername/chains. The location to save markov chains to. This may be set per-server, or per-channel.
+# These directories may be shared among rooms.
 # freenode.save-directory = freenode/chains
+# freenode.#java.save-directory = freenode/chains
 
 # Optional. Default 0.01. The chance that every time a message is sent, the markov bot will come up with something random to say to the channel.
 # Must be less than 1.0 and greater than 0.0.
@@ -59,6 +57,9 @@ freenode.hostname = chat.freenode.net
 
 # Optional. Default false. Determines whether to use SSL or not for a server.
 # freenode.ssl = false
+
+# Optional. Default none. Defines a password to send to nickserv for authentication.
+# freenode.password =
 """
     val propsPath = "markov-bot.properties"
     val propsFile = File(propsPath)
@@ -98,13 +99,11 @@ freenode.hostname = chat.freenode.net
         checkProp("$serverName.channels")
 
         // I know this is kinda inefficient, but we can fix that later. Maybe make a custom overridden Properties method?
-        val shouldSave = props.getProperty("$serverName.should-save") ?: props.getProperty("should-save")
         val saveEvery = props.getProperty("$serverName.save-every") ?: props.getProperty("save-every")
         val saveDirectory = props.getProperty("$serverName.save-directory") ?: "chains/$serverName"
         val port = props.getProperty("$serverName.port") ?: "6667"
         val ssl = props.getProperty("$serverName.ssl") ?: "false"
         val randomChance = props.getProperty("$serverName.random-chance") ?: "0.01"
-        props.setProperty("$serverName.should-save", shouldSave)
         props.setProperty("$serverName.save-every", saveEvery)
         props.setProperty("$serverName.save-directory", saveDirectory)
         props.setProperty("$serverName.port", port)
@@ -134,34 +133,50 @@ fun main(args: Array<String>) {
         if(props.getProperty("$serverName.ssl").toBoolean())
             configBuilder.setSocketFactory(SSLSocketFactory.getDefault())
 
-        // channels
+        // If we have any shared chain directories, those chains will be shared among the different listeners.
+        data class SaveInfo(val saveEvery: Int, val chainMap: HashMap<String, MarkovChain>)
+        val chainSaves: HashMap<String, SaveInfo> = HashMap()
+
+        // Set up listeners for each channel
         val channels = props.getProperty("$serverName.channels").split(",")
         for(channelName in channels) {
-            val shouldSave = (props.getProperty("$serverName.$channelName.should-save")
-                    ?: props.getProperty("$serverName.should-save")).toBoolean()
             val saveEvery = (props.getProperty("$serverName.$channelName.save-every")
                     ?: props.getProperty("$serverName.save-every")).toInt()
             val saveDirectory = props.getProperty("$serverName.$channelName.save-directory")
-                    ?: props.getProperty("$serverName.save-directory")
+                    // basically, get the server directory and make a channel subdirectory inside of it
+                    ?: "${props.getProperty("$serverName.save-directory")}/${channelName.filterNot { c -> c == '#' }}"
             val randomChance = (props.getProperty("$serverName.$channelName.random-chance")
                     ?: props.getProperty("$serverName.random-chance")).toDouble()
 
+            // Get if this is a shared chain; if not, create its sharedness
+            val chainMap = chainSaves[saveDirectory] ?: SaveInfo(saveEvery, HashMap())
             configBuilder
                     .addAutoJoinChannel(channelName)
                     .addListener(MarkovBot(
-                            saveEvery,
-                            shouldSave,
+                            channelName,
                             saveDirectory,
-                            randomChance
+                            randomChance,
+                            chainMap.chainMap
                     ))
                     .setMessageDelay(50)
             println("Adding channel $channelName")
         }
 
+        // Add all of the savers for this bot
+        for(dir in chainSaves.keys) {
+            val chainMap = chainSaves[dir]!!.chainMap
+            val saveEvery = chainSaves[dir]!!.saveEvery
+            val saver = MessageSaver(chainMap, dir, saveEvery)
+            threads.add(Thread(saver))
+        }
+
+        // Create the final config and start the bot
         val config = configBuilder.buildConfiguration()
         val bot = PircBotX(config)
         bot.stopBotReconnect()
         val botThread = Thread(PircBotRunner(bot))
+
+        // Add the bot thread
         threads.add(botThread)
     }
 

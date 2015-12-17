@@ -3,10 +3,9 @@ package edu.appstate.cs.markovbot
 import org.pircbotx.*
 import org.pircbotx.hooks.ListenerAdapter
 import org.pircbotx.hooks.events.JoinEvent
-import org.pircbotx.hooks.types.GenericMessageEvent
+import org.pircbotx.hooks.events.MessageEvent
 import java.io.File
 import java.util.*
-import javax.net.ssl.SSLSocketFactory
 
 internal const val ALL_CHAIN = "/"
 
@@ -14,9 +13,12 @@ internal const val ALL_CHAIN = "/"
  * @author Alek Ratzloff <alekratz@gmail.com>
  *     Documentation on pircbotx: http://thelq.github.io/pircbotx/latest/apidocs/
  */
-class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String, randomChance: Double) : ListenerAdapter<PircBotX>() {
-    var present: Boolean = false
-    val chainMap: HashMap<String, MarkovChain> = HashMap()
+class MarkovBot(channel: String, saveDirectory: String, randomChance: Double, chainMap: HashMap<String, MarkovChain>) : ListenerAdapter<PircBotX>() {
+    /**
+     * Determines if the bot is in the room it is supposed to be in yet.
+     */
+    var present = false
+    val chainMap = chainMap
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>
@@ -40,12 +42,11 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String, rand
     val ignoreList: HashSet<String> = HashSet()
     val gen: Random = Random()
 
+    val channel = channel
     val saveDirectory = saveDirectory
-    val saver = MessageSaver(chainMap, saveDirectory, saveEvery)
-    val saveThread = Thread(saver)
     val randomChance = randomChance
 
-    val commandMap = HashMap<String, (Array<String>, GenericMessageEvent<PircBotX>) -> Boolean>()
+    val commandMap = HashMap<String, (Array<String>, MessageEvent<PircBotX>) -> Boolean>()
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>
@@ -55,13 +56,8 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String, rand
     init {
         loadChains()
 
-        if(shouldSave) {
-            println("Starting save thread, saving every $saveEvery seconds")
-            saveThread.start()
-        }
-
         // Set up commands here
-        commandMap["ignore"] = fun(command: Array<String>, event: GenericMessageEvent<PircBotX>): Boolean {
+        commandMap["ignore"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
             val bot = event.bot
             val sendNick = event.user.nick
             ignoreList.add(sendNick)
@@ -70,7 +66,7 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String, rand
             return true
         }
 
-        commandMap["listen"] = fun(command: Array<String>, event: GenericMessageEvent<PircBotX>): Boolean {
+        commandMap["listen"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
             val bot = event.bot
             val sendNick = event.user.nick
             ignoreList.remove(sendNick)
@@ -79,10 +75,9 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String, rand
             return true
         }
 
-        commandMap["force"] = fun(command: Array<String>, event: GenericMessageEvent<PircBotX>): Boolean {
+        commandMap["force"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
             val bot = event.bot
             val sendNick = event.user.nick
-            val channel = bot.getFirstChannel() ?: return false
             val markovChain = chainMap[sendNick]
             if(markovChain != null) {
                 val sentence = markovChain.generateSentence()
@@ -91,17 +86,16 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String, rand
             return true
         }
 
-        commandMap["all"] = fun(command: Array<String>, event: GenericMessageEvent<PircBotX>): Boolean {
+        commandMap["all"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
             val bot = event.bot
             val sendNick = event.user.nick
-            val channel = bot.getFirstChannel() ?: return false
             val markovChain = allChain
             val sentence = markovChain.generateSentence()
             bot.sendIRC().message(channel, "$sendNick: $sentence")
             return true
         }
 
-        commandMap["about"] = fun(command: Array<String>, event: GenericMessageEvent<PircBotX>): Boolean {
+        commandMap["about"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
             val bot = event.bot
             val aboutMessage = """markov-bot ${VersionInfo.STR}
 source located at https://github.com/alekratz/markov-bot"""
@@ -112,7 +106,7 @@ source located at https://github.com/alekratz/markov-bot"""
             return true
         }
 
-        commandMap["help"] = fun(command: Array<String>, event: GenericMessageEvent<PircBotX>): Boolean {
+        commandMap["help"] = fun(command: Array<String>, event: MessageEvent<PircBotX>): Boolean {
             val bot = event.bot
             val helpMessage = """usage: !markov [COMMAND]
 where COMMANDs consist of:
@@ -134,8 +128,11 @@ where COMMANDs consist of:
      *     Handler for a generic message. It routes the message to the correct place if need be (i.e. is a command for
      *     a bot), and records the user's message into their markov chain if it's not a command.
      */
-    public override fun onGenericMessage(event: GenericMessageEvent<PircBotX>) {
+    public override fun onMessage(event: MessageEvent<PircBotX>) {
         val serverName = event.bot.serverInfo.serverName
+        val messageChannel = event.channel.name
+        if(messageChannel != channel) return
+
         println("$serverName ${event.user.nick} : ${event.message}")
         // if we're not in a room, don't bother listening
         if(!present)
@@ -158,7 +155,6 @@ where COMMANDs consist of:
             chainMap.putIfAbsent(name, MarkovChain())
             val chain = chainMap[name]!!
             chain.train(msg) // choo choo
-            saver.needsUpdate = true
         }
 
         synchronized(allChain) {
@@ -167,7 +163,6 @@ where COMMANDs consist of:
 
         // random chance that a markov chain will be generated
         if(gen.nextDouble() < randomChance) {
-            val channel = event.bot.getFirstChannel() ?: return
             val sendNick = event.user.nick
             val markovChain = chainMap[sendNick]
             if(markovChain != null) {
@@ -183,9 +178,11 @@ where COMMANDs consist of:
      *     thus should listen to messages.
      */
     public override fun onJoin(event: JoinEvent<PircBotX>) {
-        if(event.user.nick == event.bot.nick) {
+        val nick = event.user.nick
+        val joinedChannel = event.channel.name
+        if(nick == event.bot.nick && joinedChannel == channel) {
             present = true
-            println("Joined channel ${event.bot.getFirstChannel()}")
+            println("Joined channel $joinedChannel")
         }
     }
 
@@ -194,18 +191,19 @@ where COMMANDs consist of:
      *     Handles a command if the message sent actually is a command.
      * @return true on successful command execution, false if it was not a command or the command failed.
      */
-    public fun doCommand(event: GenericMessageEvent<PircBotX>): Boolean {
+    public fun doCommand(event: MessageEvent<PircBotX>): Boolean {
         val commands = event.message.split(" ")
         fun catchall(): Boolean {
             return commandMap["help"]!!(commands.drop(2).toTypedArray(), event)
         }
 
-        if (commands.size < 1) {
+        if(event.channel.name != channel) {
+            return false
+        } else if (commands.size < 1) {
             return catchall()
         } else if (commands[0].startsWith("!markov-")) {
             val bot = event.bot
             val sendNick = event.user.nick
-            val channel = bot.getFirstChannel() ?: return false
             bot.sendIRC().message(channel, "$sendNick : !markov-* commands have been deprecated. Use the new ones instead.")
             return catchall()
         } else if (commands[0] != "!markov") {
@@ -262,16 +260,4 @@ where COMMANDs consist of:
             }
         }
     }
-}
-
-/**
- * @author Alek Ratzloff <alekratz@gmail.com>
- *     Gets the first channel from a bot. This is useful for figuring out where to send a message, but should become
- *     deprecated soon, as the channel should be tied to the listener, not to the bot.
- *     TODO : deprecate this
- */
-fun PircBotX.getFirstChannel(): String? {
-    for(channel in userBot.channels)
-        return channel.name
-    return null
 }
