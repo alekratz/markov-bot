@@ -19,7 +19,7 @@ Version 0.1 roadmap:
 * [x] Restructure commands to be something along the line of `!markov [command] [args]` to make things more extensive.
 * [ ] Nameserver login methods
 * [ ] Basic wiki entries
-* [ ] Stubs for method documentation in the code
+* [x] Stubs for method documentation in the code
 
 Wishlist:
 * Nameserver registration
