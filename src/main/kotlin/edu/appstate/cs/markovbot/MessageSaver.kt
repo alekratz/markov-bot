@@ -16,6 +16,10 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
     val sleepTime = sleepTime * 1000
     var needsUpdate = false
 
+    /**
+     * @author Alek Ratzloff <alekratz@gmail.com>
+     *     Runs the markov chain saver. It will sleep for the specified amount of time, and then call saveChains().
+     */
     override fun run() {
         var interrupted = false
         while(!interrupted) {
@@ -29,6 +33,10 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
         }
     }
 
+    /**
+     * @author Alek Ratzloff <alekratz@gmail.com>
+     *     Saves the markov chains to the save directory specified.
+     */
     private fun saveChains() {
         if(needsUpdate) {
             needsUpdate = false
@@ -54,6 +62,11 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
         }
     }
 
+    /**
+     * @author Alek Ratzloff <alekratz@gmail.com>
+     *     Gets the chain directory for this listener, provided that it exists. If it doesn't exists it will make it.
+     * @return a file object of the chain save/load directory. If it cannot be created, returns null.
+     */
     private fun getChainDirFile(): File? {
         // make sure directory exists
         val dir = File(saveDirectory)
