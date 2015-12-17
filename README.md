@@ -13,7 +13,11 @@ Version 0.1 roadmap:
 * [x] SSL support
 * [x] `!markov-all` command that forces a message generated from all messages recorded on this channel
 * [ ] Restructure commands to be something along the line of `!markov [command] [args]` to make things more extensive.
-* [ ] Nameserver registration and login methods
+* [ ] Nameserver login methods
+
+Wishlist:
+* Nameserver registration
+* More to come...
 
 Rundown
 =
