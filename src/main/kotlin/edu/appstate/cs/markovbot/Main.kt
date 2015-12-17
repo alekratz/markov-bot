@@ -8,6 +8,11 @@ import javax.net.ssl.SSLSocketFactory
 
 var threads = ArrayList<Thread>()
 
+/**
+ * @author Alek Ratzloff <alekratz@gmail.com>
+ *     Catches a CTRL-C from the terminal. This only works for SIGINT as far as I am aware - if you send the process
+ *     some other signal (e.g. SIGKILL, SIGQUIT) to kill it, this will likely not get called.
+ */
 class CatchCtrlC : Runnable {
     override fun run() {
         println()
@@ -21,6 +26,7 @@ class CatchCtrlC : Runnable {
 
 /**
  * @author Alek Ratzloff <alekratz@gmail.com>
+ *     Loads the properties from the props file. For now, the props path is markov-bot.properties. This may change later.
  */
 fun loadProperties(): Properties {
     val propsTemplate =
@@ -109,6 +115,10 @@ freenode.hostname = chat.freenode.net
     return props
 }
 
+/**
+ * @author Alek Ratzloff <alekratz@gmail.com>
+ *     Main method. Sets up the CTRL-C shutdown hook, loads properties, and starts bot threads.
+ */
 fun main(args: Array<String>) {
     // add jvm shutdown hook
     Runtime.getRuntime().addShutdownHook(Thread(CatchCtrlC()))
