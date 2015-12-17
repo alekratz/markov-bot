@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  *
  */
 public class Weighttable extends Hashtable<String, Integer> {
-	/**
+	/*
 	 * This is to kill the warnings
 	 */
 	private static final long serialVersionUID = 570882516693488244L;
@@ -39,7 +39,7 @@ public class Weighttable extends Hashtable<String, Integer> {
 	
 	/**
 	 * Gets a string, based on the weight that it holds in the table.
-	 * @return
+	 * @return a random word based on the weights of the table.
 	 */
 	public String getRandomWord() {
 

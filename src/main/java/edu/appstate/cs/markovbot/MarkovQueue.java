@@ -11,17 +11,14 @@ import java.util.stream.Collectors;
  *
  */
 public class MarkovQueue extends ArrayDeque<String> {
-	
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 7678929707313035652L;
 	
 	private int order;
 	
 	/**
 	 * Creates a queue for a Markov chain that will have a limited number of items in it. The order is the limit.
-	 * @param order
+	 * @param order the number of phrases for each state in the markov chain to hold.
 	 */
 	public MarkovQueue(int order) {
 		this.order = order;
@@ -29,13 +26,17 @@ public class MarkovQueue extends ArrayDeque<String> {
 
     /**
      * Creates a queue for a Markov chain that will infer its order from the length of the items
-     * @param items
+     * @param items the items to create the queue from.
      */
     public MarkovQueue(String[] items) {
         this.order = items.length;
         Arrays.stream(items).forEach(s -> push(s));
     }
 
+	/**
+	 * Adds the given string to the front of the queue.
+	 * @param e the string at the front
+     */
 	@Override
 	public void addFirst(String e) {
 		while(this.size() >= order) {
@@ -43,7 +44,11 @@ public class MarkovQueue extends ArrayDeque<String> {
 		}
 		super.addFirst(e);
 	}
-	
+
+	/**
+	 * Adds the given string to the back of the queue.
+	 * @param e the string at the back
+	 */
 	@Override
 	public void addLast(String e) {
 		while(this.size() >= order) {
@@ -51,7 +56,10 @@ public class MarkovQueue extends ArrayDeque<String> {
 		}
 		super.addLast(e);
 	}
-	
+
+	/**
+	 * Gets the hashcode of this entire queue.
+	 */
 	@Override
 	public int hashCode() {
 		int h = 1;
@@ -60,12 +68,22 @@ public class MarkovQueue extends ArrayDeque<String> {
 		}
 		return h;
 	}
-	
+
+	/**
+	 * Checks the equality of the markov queue.
+	 * @param queue the other queue to compare
+	 * @return whether the elements of this queue are equal.
+     */
 	@Override
 	public boolean equals(Object queue) {
 		return ((MarkovQueue)queue).hashCode() == hashCode();
 	}
-	
+
+	/**
+	 * Creates a copy of the markov queue. This is useful for creating markov chains. This creates a shallow clone as far
+	 * as strings are concerned (i.e., string references are copied and not entire strings).
+	 * @return the shallow clone of this queue.
+     */
 	@Override
 	public MarkovQueue clone() {
 		MarkovQueue c = new MarkovQueue(order);
@@ -73,12 +91,20 @@ public class MarkovQueue extends ArrayDeque<String> {
 			c.add(s);
 		return c;
 	}
-	
+
+	/**
+	 * Joins all of the words in this queue together separated by spaces.
+	 * @return the stringified version of this queue.
+     */
 	@Override
 	public String toString() {
 		return this.stream().collect(Collectors.joining(" "));
 	}
-	
+
+	/**
+	 * How many items the queue can hold before the last or first item gets pushed off the queue.
+	 * @return the order of the queue.
+     */
 	public int getOrder() {
 		return order;
 	}
