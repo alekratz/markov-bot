@@ -6,14 +6,12 @@ Markov chains are written in Java.
 
 Written in Kotlin. Just run `mvn package` to get it to compile. Use `java -classpath target/markov-bot-1.0-SNAPSHOT.jar edu.appstate.cs.MarkovBot` to run it. Getting executable jars is on the TODO list.
 
-A few TODOs:
+Version 0.1 roadmap:
 * [x] Multiple server support
 * [x] Multithreaded markov chain saving
 * [x] Add main class to the compiled jar so we can just use `java -jar target/markov-bot-1.0-SNAPSHOT.jar`
-* [ ] SSL support
+* [x] SSL support
 * [x] `!markov-all` command that forces a message generated from all messages recorded on this channel
-
-A few ideas if someone feels like implementing them:
 * [ ] Restructure commands to be something along the line of `!markov [command] [args]` to make things more extensive.
 * [ ] Nameserver registration and login methods
 
