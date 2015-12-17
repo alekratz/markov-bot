@@ -12,6 +12,7 @@ Wishlist:
 * Accepting invalid SSL certificates
 * Custom number of sentences generated with !markov force and !markov all
 * User-defined setting of random chance
+* Status log support
 * More to come...
 
 # Rundown
