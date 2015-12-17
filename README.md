@@ -1,4 +1,4 @@
-# Markov-bot
+# Markov-bot v0.1.0-beta
 Read more in the [Rundown](#rundown) section.
 
 Written in Kotlin. Markov chains are written in Java.
