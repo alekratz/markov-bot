@@ -29,7 +29,7 @@ Wishlist:
 
 # Rundown
 
-This bot records everything everyone says in an IRC channel. Each message sent has a 1/100 random chance to make the IRC bot reply with a markov chain. Actual order of words/messages is not recorded, just the frequency of each word. Channel users may use the following commands to control how the bot interacts with them:
+This bot records everything everyone says in an IRC channel. Each message sent has a random chance to make the IRC bot reply with a markov chain. Actual order of words/messages is not recorded, just the frequency of each word. Channel users may use the following commands to control how the bot interacts with them:
 
 * `!markov force` forces the bot to create a markov chain customized for you. If a user's markov chain is not very fleshed out, this may not work; some IRC networks don't like the same message being sent more than once in a row.
 * `!markov all` forces the bot to create a markov chain customized by all of the messages received in the channel, collectively. This will only mess up if this markov bot has absolutely no messages.
