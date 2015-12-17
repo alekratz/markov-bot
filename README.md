@@ -16,7 +16,7 @@ Version 0.1 roadmap:
 * [x] Add main class to the compiled jar so we can just use `java -jar target/markov-bot-1.0-SNAPSHOT.jar`
 * [x] SSL support
 * [x] `!markov-all` command that forces a message generated from all messages recorded on this channel
-* [ ] Restructure commands to be something along the line of `!markov [command] [args]` to make things more extensive.
+* [x] Restructure commands to be something along the line of `!markov [command] [args]` to make things more extensive.
 * [ ] Nameserver login methods
 * [ ] Basic wiki entries
 * [ ] Stubs for method documentation in the code
