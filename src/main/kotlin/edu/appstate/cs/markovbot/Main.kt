@@ -144,6 +144,7 @@ fun main(args: Array<String>) {
                             saveDirectory,
                             randomChance
                     ))
+                    .setMessageDelay(50)
             println("Adding channel $channelName")
         }
 
