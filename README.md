@@ -18,6 +18,8 @@ Version 0.1 roadmap:
 * [x] `!markov-all` command that forces a message generated from all messages recorded on this channel
 * [ ] Restructure commands to be something along the line of `!markov [command] [args]` to make things more extensive.
 * [ ] Nameserver login methods
+* [ ] Basic wiki entries
+* [ ] Stubs for method documentation in the code
 
 Wishlist:
 * Nameserver registration
