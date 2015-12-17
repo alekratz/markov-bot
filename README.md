@@ -11,7 +11,7 @@ Wishlist:
 * Nameserver registration
 * Accepting invalid SSL certificates
 * Custom number of sentences generated with !markov force and !markov all
-* User-defined setting of random chance
+* User-defined setting of random chance (see #1)
 * Status log support
 * More to come...
 
