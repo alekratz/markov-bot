@@ -4,6 +4,7 @@ import org.pircbotx.Configuration
 import org.pircbotx.PircBotX
 import java.io.File
 import java.util.*
+import javax.net.ssl.SSLSocketFactory
 
 var threads = ArrayList<Thread>()
 
@@ -41,10 +42,14 @@ freenode.hostname = chat.freenode.net
 
 # Optional. Default 20. The number of seconds in between markov chain saves. This is set per-server.
 # freenode.save-every = 3600
-# freenode.myroom.save-every = 100
+# freenode.myroom.save-every = 1800
 
 # Optional. Default servername/chains. The location to save markov chains to. This may be set per-server, or per-channel.
 # freenode.save-directory = freenode/chains
+
+# Optional. Default 0.01. The chance that every time a message is sent, the markov bot will come up with something random to say to the channel.
+# Must be less than 1.0 and greater than 0.0.
+# freenode.random-chance = 0.01
 
 # Optional. Default false. Determines whether to use SSL or not for a server.
 # freenode.ssl = false
@@ -92,11 +97,13 @@ freenode.hostname = chat.freenode.net
         val saveDirectory = props.getProperty("$serverName.save-directory") ?: "chains/$serverName"
         val port = props.getProperty("$serverName.port") ?: "6667"
         val ssl = props.getProperty("$serverName.ssl") ?: "false"
+        val randomChance = props.getProperty("$serverName.random-chance") ?: "0.01"
         props.setProperty("$serverName.should-save", shouldSave)
         props.setProperty("$serverName.save-every", saveEvery)
         props.setProperty("$serverName.save-directory", saveDirectory)
         props.setProperty("$serverName.port", port)
         props.setProperty("$serverName.ssl", ssl)
+        props.setProperty("$serverName.random-chance", randomChance)
     }
 
     return props
@@ -114,8 +121,8 @@ fun main(args: Array<String>) {
                 .setServerHostname(props.getProperty("$serverName.hostname"))
                 .setServerPort(props.getProperty("$serverName.port").toInt())
 
-        //if(props.getProperty("$serverName.ssl").toBoolean())
-        //    configBuilder.setSocketFactory(SSLSocketFactory.getDefault())
+        if(props.getProperty("$serverName.ssl").toBoolean())
+            configBuilder.setSocketFactory(SSLSocketFactory.getDefault())
 
         // channels
         val channels = props.getProperty("$serverName.channels").split(",")
@@ -126,13 +133,16 @@ fun main(args: Array<String>) {
                     ?: props.getProperty("$serverName.save-every")).toInt()
             val saveDirectory = props.getProperty("$serverName.$channelName.save-directory")
                     ?: props.getProperty("$serverName.save-directory")
+            val randomChance = (props.getProperty("$serverName.$channelName.random-chance")
+                    ?: props.getProperty("$serverName.random-chance")).toDouble()
 
             configBuilder
                     .addAutoJoinChannel(channelName)
                     .addListener(MarkovBot(
                             saveEvery,
                             shouldSave,
-                            saveDirectory
+                            saveDirectory,
+                            randomChance
                     ))
             println("Adding channel $channelName")
         }

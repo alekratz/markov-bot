@@ -14,7 +14,7 @@ internal const val ALL_CHAIN = "/"
  * @author Alek Ratzloff <alekratz@gmail.com>
  *     Documentation on pircbotx: http://thelq.github.io/pircbotx/latest/apidocs/
  */
-class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String) : ListenerAdapter<PircBotX>() {
+class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String, randomChance: Double) : ListenerAdapter<PircBotX>() {
     var present: Boolean = false
     val chainMap: HashMap<String, MarkovChain> = HashMap()
     val allChain: MarkovChain
@@ -37,6 +37,7 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String) : Li
     val saveDirectory = saveDirectory
     val saver = MessageSaver(chainMap, saveDirectory, saveEvery)
     val saveThread = Thread(saver)
+    val randomChance = randomChance
 
     init {
         loadChains()
@@ -78,8 +79,8 @@ class MarkovBot(saveEvery: Int, shouldSave: Boolean, saveDirectory: String) : Li
             allChain.train(msg)
         }
 
-        // also, 1/100 chance to send a random markov chain generated message
-        if(gen.nextInt(100) == 0) {
+        // random chance that a markov chain will be generated
+        if(gen.nextDouble() < randomChance) {
             val channel = event.bot.getFirstChannel() ?: return
             val sendNick = event.user.nick
             val markovChain = chainMap[sendNick]
