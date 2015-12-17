@@ -59,12 +59,23 @@ public class MarkovChain {
 		}
 		scanner.close();
 	}
-	
+
+	/**
+	 * Generates an entire paragraph with the given number of sentences.
+	 * @param count the number of sentences in the paragraph.
+	 * @return a generated paragraph based on the markov chain.
+     */
 	public String generateParagraph(int count) {
 		// choose a random seed
 		return generateParagraph(count, getRandomSeed());
 	}
-	
+
+	/**
+	 * Generates an entire paragraph with the given number of sentences, and a fixed starting word.
+	 * @param count the number of sentences in the paragraph.
+	 * @param seed the word to start the paragraph with.
+     * @return the generated paragraph.
+     */
 	public String generateParagraph(int count, MarkovQueue seed) {
 		String paragraph = "";
 		
@@ -83,10 +94,19 @@ public class MarkovChain {
 		return paragraph;
 	}
 
+	/**
+	 * Generates a random sentence based on the markov chain.
+	 * @return the random sentence generated.
+     */
 	public String generateSentence() {
 		return generateSentence(getRandomSeed());
 	}
 
+	/**
+	 * Generates a random sentence based on the markov chain, and a fixed starting word.
+	 * @param seed the word to start the sentence with.
+	 * @return the random sentence generated.
+	 */
 	public String generateSentence(MarkovQueue seed) {
 		MarkovQueue words = seed;
 		String sentence = "";
@@ -130,6 +150,10 @@ public class MarkovChain {
 		return sentence;
 	}
 
+	/**
+	 * Gets a random word to seed a markov chain with.
+	 * @return the random word
+     */
 	public MarkovQueue getRandomSeed() {
 		// choose a random seed
 		int which = random.nextInt(chain.keySet().size());
