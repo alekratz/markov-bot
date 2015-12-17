@@ -42,7 +42,7 @@ freenode.nickname = markovbot
 # Required. The hostname of the server that you will be operating on.
 freenode.hostname = chat.freenode.net
 
-# Optional. Default 20. The number of seconds in between markov chain saves. This can be set per-server or per-channel.
+# Optional. Default 3600. The number of seconds in between markov chain saves. This can be set per-server or per-channel.
 # freenode.save-every = 3600
 # freenode.#myroom.save-every = 1800
 
@@ -125,6 +125,10 @@ fun main(args: Array<String>) {
 
     val props = loadProperties()
     val servers = props.getProperty("servers").split(",")
+    // If we have any shared chain directories, those chains will be shared among the different listeners.
+    data class SaveInfo(val saveEvery: Int, val chainMap: HashMap<String, MarkovChain>)
+    val chainSaves: HashMap<String, SaveInfo> = HashMap()
+
     for(serverName in servers) {
         val configBuilder = Configuration.Builder<PircBotX>()
                 .setName(props.getProperty("$serverName.nickname"))
@@ -133,10 +137,6 @@ fun main(args: Array<String>) {
 
         if(props.getProperty("$serverName.ssl").toBoolean())
             configBuilder.setSocketFactory(SSLSocketFactory.getDefault())
-
-        // If we have any shared chain directories, those chains will be shared among the different listeners.
-        data class SaveInfo(val saveEvery: Int, val chainMap: HashMap<String, MarkovChain>)
-        val chainSaves: HashMap<String, SaveInfo> = HashMap()
 
         // Set up listeners for each channel
         val channels = props.getProperty("$serverName.channels").split(",")
@@ -163,14 +163,6 @@ fun main(args: Array<String>) {
             println("Adding channel $channelName")
         }
 
-        // Add all of the savers for this bot
-        for(dir in chainSaves.keys) {
-            val chainMap = chainSaves[dir]!!.chainMap
-            val saveEvery = chainSaves[dir]!!.saveEvery
-            val saver = MessageSaver(chainMap, dir, saveEvery)
-            threads.add(Thread(saver))
-        }
-
         // Create the final config and start the bot
         val nickServPassword = props.getProperty("$serverName.password")
         val config = configBuilder
@@ -182,6 +174,14 @@ fun main(args: Array<String>) {
 
         // Add the bot thread
         threads.add(botThread)
+    }
+
+    // Add all of the savers for this bot
+    for(dir in chainSaves.keys) {
+        val chainMap = chainSaves[dir]!!.chainMap
+        val saveEvery = chainSaves[dir]!!.saveEvery
+        val saver = MessageSaver(chainMap, dir, saveEvery)
+        threads.add(Thread(saver))
     }
 
     for(t in threads)
