@@ -14,7 +14,7 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
     val chainMap = chainMap
     val saveDirectory = saveDirectory
     val sleepTime = sleepTime * 1000
-    var needsUpdate = false
+    var lastHashcode = chainMap.hashCode()
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>
@@ -39,8 +39,8 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
      *     Saves the markov chains to the save directory specified.
      */
     private fun saveChains() {
-        if(needsUpdate) {
-            needsUpdate = false
+        if(lastHashcode != chainMap.hashCode()) {
+            lastHashcode = chainMap.hashCode()
         } else {
             println("No new messages to save - skipping")
             return
