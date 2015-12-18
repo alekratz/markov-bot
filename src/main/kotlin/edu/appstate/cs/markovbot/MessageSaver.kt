@@ -27,6 +27,7 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
                 Thread.sleep(sleepTime.toLong())
                 saveChains()
             } catch(ex: InterruptedException) {
+                interrupted = true
                 println("Chain saver interrupted, saving one last time")
                 saveChains()
             }
