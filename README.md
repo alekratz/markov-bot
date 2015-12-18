@@ -6,14 +6,16 @@ Written in Kotlin. Markov chains are written in Java.
 Check the Wiki for [building instructions](https://github.com/alekratz/markov-bot/wiki/Building).
 
 # Development
-Current version is v0.1.0. Development for the next version is currently not up yet, but a link will appear hear when it is.
+Here are a list of the candidates for v0.2.0 features, pulled from the wishlist. I believe these will be the most doable.
+
+v0.2.0 roadmap:
+* [ ] Accepting invalid SSL certificates (upon explicit configuration)
+* [ ] Custom number of sentences generated with !markov force and !markov all
+* [ ] User-defined setting of random chance (see [1](https://github.com/alekratz/markov-bot/issues/1))
 
 Wishlist:
 
 * Nameserver registration
-* Accepting invalid SSL certificates
-* Custom number of sentences generated with !markov force and !markov all
-* User-defined setting of random chance (see [1](https://github.com/alekratz/markov-bot/issues/1))
 * Status log support
 * More to come...
 
