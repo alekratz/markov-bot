@@ -9,7 +9,7 @@ Check the Wiki for [building instructions](https://github.com/alekratz/markov-bo
 Here are a list of the candidates for v0.2.0 features, pulled from the wishlist. I believe these will be the most doable.
 
 v0.2.0 roadmap:
-* [ ] Accepting invalid SSL certificates (upon explicit configuration)
+* [x] Accepting invalid SSL certificates (upon explicit configuration)
 * [ ] Custom number of sentences generated with !markov force and !markov all
 * [ ] User-defined setting of random chance (see [1](https://github.com/alekratz/markov-bot/issues/1))
 
