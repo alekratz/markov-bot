@@ -93,7 +93,8 @@ where COMMANDs consist of:
         } else if (commands[0].startsWith("!markov-")) {
             val bot = event.bot
             val sendNick = event.user.nick
-            bot.sendIRC().message(listener.channel, "$sendNick : !markov-* commands have been deprecated. Use the new ones instead.")
+            bot.sendIRC().message(listener.channel,
+                    "$sendNick : !markov-* commands have been deprecated. Use the new ones instead.")
             return catchall()
         } else if (commands[0] != "!markov") {
             return false
