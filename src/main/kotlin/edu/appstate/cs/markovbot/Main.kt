@@ -135,8 +135,14 @@ fun main(args: Array<String>) {
                 .setServerHostname(props.getProperty("$serverName.hostname"))
                 .setServerPort(props.getProperty("$serverName.port").toInt())
 
-        if(props.getProperty("$serverName.ssl").toBoolean())
-            configBuilder.setSocketFactory(SSLSocketFactory.getDefault())
+        if(props.getProperty("$serverName.ssl").toBoolean()) {
+            val acceptInvalidCerts = props.getProperty("$serverName.ssl.accept-invalid-certs")?.toBoolean() ?: false
+
+            if(acceptInvalidCerts)
+                configBuilder.setSocketFactory(getNaiveSocketFactory())
+            else
+                configBuilder.setSocketFactory(SSLSocketFactory.getDefault())
+        }
 
         // Set up listeners for each channel
         val channels = props.getProperty("$serverName.channels").split(",")
