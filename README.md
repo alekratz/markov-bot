@@ -1,4 +1,4 @@
-# Markov-bot v0.1.0-beta
+# Markov-bot v0.1.0
 Read more in the [Rundown](#rundown) section.
 
 Written in Kotlin. Markov chains are written in Java.
@@ -6,6 +6,8 @@ Written in Kotlin. Markov chains are written in Java.
 Check the Wiki for [building instructions](https://github.com/alekratz/markov-bot/wiki/Building).
 
 # Development
+Current version is v0.1.0. Development for the next version is currently not up yet, but a link will appear hear when it is.
+
 Wishlist:
 
 * Nameserver registration
