@@ -7,7 +7,7 @@ object VersionInfo {
     const val MAJOR     = 0
     const val MINOR     = 1
     const val REV       = 0
-    const val SUFFIX    = "-beta"
+    const val SUFFIX    = "-release"
 
     const val STR = "$MAJOR.$MINOR.$REV$SUFFIX"
 }
