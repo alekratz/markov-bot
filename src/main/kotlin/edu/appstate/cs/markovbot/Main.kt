@@ -150,7 +150,8 @@ fun main(args: Array<String>) {
                     ?: props.getProperty("$serverName.random-chance")).toDouble()
 
             // Get if this is a shared chain; if not, create its sharedness
-            val chainMap = chainSaves[saveDirectory] ?: SaveInfo(saveEvery, HashMap())
+            chainSaves.putIfAbsent(saveDirectory, SaveInfo(saveEvery, HashMap()))
+            val chainMap = chainSaves[saveDirectory]!!
             configBuilder
                     .addAutoJoinChannel(channelName)
                     .addListener(MessageListener(

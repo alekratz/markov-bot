@@ -119,8 +119,15 @@ public class MarkovChain {
 		String word;
 		do{
 			Weighttable weights = chain.get(words);
+
+			// Sometimes the chain doesn't have any start states for the word in question
+			// So it should just be save to cut it off here
+			if(weights == null) {
+				sentence += ".";
+				break;
+			}
+
 			String append = word = weights.getRandomWord();
-			
 			if(word.startsWith("\"") || word.startsWith("'")) {
 				quotes.push(word.charAt(0));
 			}
