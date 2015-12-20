@@ -9,6 +9,9 @@ import java.util.*
 
 internal const val ALL_CHAIN = "/"
 
+private const val EXPECTED_INSERTIONS = 5000
+private const val FPP = 0.001
+
 /**
  * @author Alek Ratzloff <alekratz@gmail.com>
  *     Documentation on pircbotx: http://thelq.github.io/pircbotx/latest/apidocs/
@@ -19,6 +22,8 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
      */
     var present = false
     val chainMap = chainMap
+    var sentMessageFilter = BloomFilter.create(Funnels.stringFunnel(Charset.defaultCharset()), EXPECTED_INSERTIONS, FPP)
+    var messageCount = 0
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>
@@ -60,17 +65,27 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
      *     a bot), and records the user's message into their markov chain if it's not a command.
      */
     public override fun onMessage(event: MessageEvent<PircBotX>) {
-        val serverName = event.bot.serverInfo.serverName
-        val messageChannel = event.channel.name
-        if(messageChannel != channel) return
-
-        println("$serverName ${event.user.nick} : ${event.message}")
         // if we're not in a room, don't bother listening
         if(!present)
             return
 
+        val messageChannel = event.channel.name
+        if(messageChannel != channel) return
+
+        val serverName = event.bot.serverInfo.serverName
+        println("$serverName ${event.user.nick} : ${event.message}")
+
         // command was handled
         if(CommandHandler.doCommand(event, this)) return
+
+        // increment message count
+        messageCount++
+        if(messageCount % 5000 == 0) {
+            synchronized(sentMessageFilter) {
+                sentMessageFilter = BloomFilter.create(Funnels.stringFunnel(Charset.defaultCharset()),
+                        EXPECTED_INSERTIONS, FPP)
+            }
+        }
 
         // ensure that the message ends in some sort of symbol. otherwise paste in a period at the end
         val msg = if(event.message.endsWith(".") || event.message.endsWith("!") || event.message.endsWith("?")) {
@@ -135,7 +150,7 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>
-     *     Loads the set of markov chains from the save/load directory.
+     *     Loads the set of markov chains from the save/load M directory.
      */
     private fun loadChains() {
         println("Loading markov chains")
