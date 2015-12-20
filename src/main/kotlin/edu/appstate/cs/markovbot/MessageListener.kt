@@ -1,10 +1,13 @@
 package edu.appstate.cs.markovbot
 
+import com.google.common.hash.BloomFilter
+import com.google.common.hash.Funnels
 import org.pircbotx.*
 import org.pircbotx.hooks.ListenerAdapter
 import org.pircbotx.hooks.events.JoinEvent
 import org.pircbotx.hooks.events.MessageEvent
 import java.io.File
+import java.nio.charset.Charset
 import java.util.*
 
 internal const val ALL_CHAIN = "/"
