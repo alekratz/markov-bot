@@ -12,7 +12,6 @@ v0.2.0 roadmap:
 * [x] Accepting invalid SSL certificates (upon explicit configuration)
 * [x] Custom number of sentences generated with !markov force and !markov all
 * [x] User-defined setting of random chance (see [1](https://github.com/alekratz/markov-bot/issues/1))
-* [ ] Keep a history of messages that have *already* been sent using a bloom filter
 * [ ] "Administrator" user(s) who can check the status of the bot, restart, force a save, etc.
 
 Wishlist:
