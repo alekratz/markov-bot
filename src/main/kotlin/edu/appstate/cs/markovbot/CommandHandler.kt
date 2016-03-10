@@ -35,7 +35,8 @@ object CommandHandler {
         commandMap["force"] = fun(args: CommandArgs): Boolean {
             val bot = args.event.bot
             val sendNick = args.event.user.nick
-            val markovChain = args.listener.chainMap[sendNick]
+            val lowerNick = toIrcLowerCase(sendNick)
+            val markovChain = args.listener.chainMap[lowerNick]
             if(markovChain != null) {
                 val sentence = markovChain.generateSentence()
                 bot.sendIRC().message(args.listener.channel, "$sendNick: $sentence")
