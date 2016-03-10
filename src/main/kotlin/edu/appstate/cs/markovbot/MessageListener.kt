@@ -51,6 +51,7 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
             return chainMap[ALL_CHAIN]!!
         }
     val ignoreList: HashSet<String> = HashSet()
+    val userChances: HashMap<String, Double> = HashMap()
     val gen: Random = Random()
 
     val channel = channel
@@ -121,8 +122,10 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
             }
         }
 
+        // set up the random chance for the user if it hasn't been already
+        userChances.putIfAbsent(lowerNick, randomChance)
         // random chance that a markov chain will be generated
-        if(gen.nextDouble() < randomChance) {
+        if(gen.nextDouble() < userChances[lowerNick]!!) {
             val markovChain = chainMap[lowerNick]
             if(markovChain != null) {
                 val sentence = markovChain.generateSentence()
