@@ -20,6 +20,7 @@ Wishlist:
 * Nameserver registration
 * Status log support
 * Markov chains implemented in Kotlin rather than Java
+* Reloading configuration while still running (if possible)
 * More to come...
 
 # Rundown
