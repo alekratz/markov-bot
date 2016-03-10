@@ -8,6 +8,8 @@ import org.pircbotx.hooks.events.JoinEvent
 import org.pircbotx.hooks.events.MessageEvent
 import java.io.File
 import java.nio.charset.Charset
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 internal const val ALL_CHAIN = "/"
@@ -75,8 +77,12 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
         val messageChannel = event.channel.name
         if(messageChannel != channel) return
 
-        val serverName = event.bot.serverInfo.serverName
-        println("$serverName ${event.user.nick} : ${event.message}")
+        val serverName = event.bot
+                .serverInfo
+                .serverName
+        val now = LocalDateTime.now()
+                .format(DateTimeFormatter.ISO_TIME)
+        println("$now: $serverName ${event.user.nick} : ${event.message}")
 
         // command was handled
         if(CommandHandler.doCommand(event, this)) return
