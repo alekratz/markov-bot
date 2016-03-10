@@ -2,7 +2,7 @@ group 'edu.appstate.cs.markovbot'
 version '0.1-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.0.0-beta-3595'
+    ext.kotlin_version = '1.0.0'
     repositories {
         mavenCentral()
     }
