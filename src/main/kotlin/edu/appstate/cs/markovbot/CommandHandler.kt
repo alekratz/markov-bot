@@ -32,11 +32,14 @@ object CommandHandler {
             return true
         }
 
-        commandMap["force"] = fun(args: CommandArgs): Boolean {
+        fun forceOrAll(args: CommandArgs): Boolean {
             val bot = args.event.bot
             val sendNick = args.event.user.nick
             val lowerNick = toIrcLowerCase(sendNick)
-            val markovChain = args.listener.chainMap[lowerNick]
+            val markovChain = if(sendNick == ALL_CHAIN)
+                args.listener.allChain
+            else
+                args.listener.chainMap[lowerNick]
             val maxSentences = args.listener.maxSentences
             var sentenceCount = if(args.args.size == 1) {
                 try {
@@ -58,30 +61,8 @@ object CommandHandler {
             return true
         }
 
-        commandMap["all"] = fun(args: CommandArgs): Boolean {
-            val bot = args.event.bot
-            val sendNick = args.event.user.nick
-            val markovChain = args.listener.allChain
-            val maxSentences = args.listener.maxSentences
-            var sentenceCount = if(args.args.size == 1) {
-                try {
-                    Math.min(maxSentences, Math.abs(args.args[0].toInt()))
-                } catch(ex: NumberFormatException) {
-                    1
-                }
-            } else {
-                1
-            }
-
-            var result = ""
-            while(sentenceCount > 0) {
-                result += markovChain.generateSentence()
-                sentenceCount--;
-            }
-            bot.sendIRC().message(args.listener.channel, "$sendNick: $result")
-
-            return true
-        }
+        commandMap["force"] = fun(args: CommandArgs): Boolean { return forceOrAll(args) }
+        commandMap["all"]   = fun(args: CommandArgs): Boolean { return forceOrAll(args) }
 
         commandMap["about"] = fun(args: CommandArgs): Boolean {
             val bot = args.event.bot
