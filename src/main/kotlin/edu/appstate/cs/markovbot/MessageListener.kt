@@ -105,8 +105,12 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
             chain.train(msg) // choo choo
         }
 
-        synchronized(allChain) {
-            allChain.train(msg)
+        // If the allchain hasn't been initialized, don't worry about it. We only want to start working on it when it's
+        // finally been initliazed via the !markov all command.
+        if(chainMap[ALL_CHAIN] != null) {
+            synchronized(allChain) {
+                allChain.train(msg)
+            }
         }
 
         // random chance that a markov chain will be generated
