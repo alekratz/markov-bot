@@ -56,9 +56,10 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
             for (nickname in chainMap.keys) {
                 if(nickname == ALL_CHAIN)
                     continue
-                println("Saving chain for $nickname")
-                val chain = chainMap[nickname]
-                chain?.saveToFile("$saveDirectory/$nickname.json")
+                val nickLower = toIrcLowerCase(nickname)
+                println("Saving chain for $nickLower (aka $nickname)")
+                val chain = chainMap[nickLower]
+                chain?.saveToFile("$saveDirectory/$nickLower.json")
             }
         }
     }

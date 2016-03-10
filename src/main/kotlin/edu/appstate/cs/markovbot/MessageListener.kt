@@ -98,9 +98,10 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
         }
 
         val sendNick = event.user.nick
+        val lowerNick = toIrcLowerCase(sendNick)
         synchronized(chainMap) {
-            chainMap.putIfAbsent(sendNick, MarkovChain())
-            val chain = chainMap[sendNick]!!
+            chainMap.putIfAbsent(lowerNick, MarkovChain())
+            val chain = chainMap[lowerNick]!!
             chain.train(msg) // choo choo
         }
 
@@ -110,7 +111,7 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
 
         // random chance that a markov chain will be generated
         if(gen.nextDouble() < randomChance) {
-            val markovChain = chainMap[sendNick]
+            val markovChain = chainMap[lowerNick]
             if(markovChain != null) {
                 val sentence = markovChain.generateSentence()
                 event.bot.sendIRC().message(channel, "$sendNick: $sentence")
@@ -163,14 +164,21 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
             return
         }
 
+        var usernameCount = 0
         synchronized(chainMap) {
             for (path in dir.listFiles({ f -> f.extension == "json" }).orEmpty()) {
                 val nickname = path.name.split(".")[0]
-                println("Loading chain for $nickname")
+                val nickLower = toIrcLowerCase(nickname)
+                println("Loading chain for $nickLower (aka $nickname)")
                 val chain = MarkovChain()
                 chain.loadFromFile(path.canonicalPath)
-                chainMap[nickname] = chain
+                usernameCount++
+                if(chainMap.containsKey(nickLower))
+                    chainMap[nickLower]!!.merge(chain)
+                else
+                    chainMap[nickLower] = chain
             }
         }
+        println("I have loaded ${chainMap.keys.size} chains ($usernameCount unique users)")
     }
 }
