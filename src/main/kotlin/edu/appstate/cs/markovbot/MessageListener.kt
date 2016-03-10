@@ -67,7 +67,7 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
      *     Handler for a generic message. It routes the message to the correct place if need be (i.e. is a command for
      *     a bot), and records the user's message into their markov chain if it's not a command.
      */
-    public override fun onMessage(event: MessageEvent<PircBotX>) {
+    override fun onMessage(event: MessageEvent<PircBotX>) {
         // if we're not in a room, don't bother listening
         if(!present)
             return
@@ -123,7 +123,7 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
      *     Handler for when the bot joins the room. This mostly important to determine whether the bot is present and
      *     thus should listen to messages.
      */
-    public override fun onJoin(event: JoinEvent<PircBotX>) {
+    override fun onJoin(event: JoinEvent<PircBotX>) {
         val nick = event.user.nick
         val joinedChannel = event.channel.name
         if(nick == event.bot.nick && joinedChannel == channel) {
