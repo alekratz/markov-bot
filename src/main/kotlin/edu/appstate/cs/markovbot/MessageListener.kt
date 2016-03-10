@@ -21,7 +21,8 @@ private const val FPP = 0.001
  * @author Alek Ratzloff <alekratz@gmail.com>
  *     Documentation on pircbotx: http://thelq.github.io/pircbotx/latest/apidocs/
  */
-class MessageListener(channel: String, saveDirectory: String, randomChance: Double, chainMap: HashMap<String, MarkovChain>) : ListenerAdapter<PircBotX>() {
+class MessageListener(channel: String, saveDirectory: String, randomChance: Double, maxSentences: Int,
+                      chainMap: HashMap<String, MarkovChain>) : ListenerAdapter<PircBotX>() {
     /**
      * Determines if the bot is in the room it is supposed to be in yet.
      */
@@ -55,6 +56,7 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
     val channel = channel
     val saveDirectory = saveDirectory
     val randomChance = randomChance
+    val maxSentences = maxSentences
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>

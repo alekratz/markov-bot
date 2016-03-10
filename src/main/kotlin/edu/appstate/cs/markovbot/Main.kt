@@ -105,11 +105,13 @@ freenode.hostname = chat.freenode.net
         val port = props.getProperty("$serverName.port") ?: "6667"
         val ssl = props.getProperty("$serverName.ssl") ?: "false"
         val randomChance = props.getProperty("$serverName.random-chance") ?: "0.01"
+        val maxSentences = props.getProperty("$serverName.max-sentences") ?: "1"
         props.setProperty("$serverName.save-every", saveEvery)
         props.setProperty("$serverName.save-directory", saveDirectory)
         props.setProperty("$serverName.port", port)
         props.setProperty("$serverName.ssl", ssl)
         props.setProperty("$serverName.random-chance", randomChance)
+        props.setProperty("$serverName.max-sentences", maxSentences)
     }
 
     return props
@@ -154,6 +156,8 @@ fun main(args: Array<String>) {
                     ?: "${props.getProperty("$serverName.save-directory")}/${channelName.filterNot { c -> c == '#' }}"
             val randomChance = (props.getProperty("$serverName.$channelName.random-chance")
                     ?: props.getProperty("$serverName.random-chance")).toDouble()
+            val maxSentences = (props.getProperty("$serverName.$channelName.max-sentences")
+                    ?: props.getProperty("$serverName.max-sentences")).toInt()
 
             // Get if this is a shared chain; if not, create its sharedness
             chainSaves.putIfAbsent(saveDirectory, SaveInfo(saveEvery, HashMap()))
@@ -164,6 +168,7 @@ fun main(args: Array<String>) {
                             channelName,
                             saveDirectory,
                             randomChance,
+                            maxSentences,
                             chainMap.chainMap
                     ))
                     .setMessageDelay(50)

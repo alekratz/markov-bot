@@ -37,9 +37,23 @@ object CommandHandler {
             val sendNick = args.event.user.nick
             val lowerNick = toIrcLowerCase(sendNick)
             val markovChain = args.listener.chainMap[lowerNick]
+            val maxSentences = args.listener.maxSentences
+            var sentenceCount = if(args.args.size == 1) {
+                try {
+                    Math.min(maxSentences, Math.abs(args.args[0].toInt()))
+                } catch(ex: NumberFormatException) {
+                    1
+                }
+            } else {
+                1
+            }
             if(markovChain != null) {
-                val sentence = markovChain.generateSentence()
-                bot.sendIRC().message(args.listener.channel, "$sendNick: $sentence")
+                var result = ""
+                while(sentenceCount > 0) {
+                    result += markovChain.generateSentence()
+                    sentenceCount--;
+                }
+                bot.sendIRC().message(args.listener.channel, "$sendNick: $result")
             }
             return true
         }
@@ -48,8 +62,24 @@ object CommandHandler {
             val bot = args.event.bot
             val sendNick = args.event.user.nick
             val markovChain = args.listener.allChain
-            val sentence = markovChain.generateSentence()
-            bot.sendIRC().message(args.listener.channel, "$sendNick: $sentence")
+            val maxSentences = args.listener.maxSentences
+            var sentenceCount = if(args.args.size == 1) {
+                try {
+                    Math.min(maxSentences, Math.abs(args.args[0].toInt()))
+                } catch(ex: NumberFormatException) {
+                    1
+                }
+            } else {
+                1
+            }
+
+            var result = ""
+            while(sentenceCount > 0) {
+                result += markovChain.generateSentence()
+                sentenceCount--;
+            }
+            bot.sendIRC().message(args.listener.channel, "$sendNick: $result")
+
             return true
         }
 
