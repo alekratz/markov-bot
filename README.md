@@ -20,6 +20,7 @@ Wishlist:
 * Status log support
 * Markov chains implemented in Kotlin rather than Java
 * Reloading configuration while still running (if possible)
+* Allow setting the command to invoke the bot (as opposed to !markov)
 * More to come...
 
 # Rundown
