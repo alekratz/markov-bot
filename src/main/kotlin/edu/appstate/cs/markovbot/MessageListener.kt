@@ -90,6 +90,10 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
         // command was handled
         if(CommandHandler.doCommand(event, this)) return
 
+        // ignore
+        if(ignoreList.contains(event.user.nick))
+            return
+        
         // increment message count
         messageCount++
         if(messageCount % 5000 == 0) {
