@@ -28,6 +28,7 @@ This bot records everything everyone says in an IRC channel. Each message sent h
 
 * `!markov force` forces the bot to create a markov chain customized for you. If a user's markov chain is not very fleshed out, this may not work; some IRC networks don't like the same message being sent more than once in a row.
 * `!markov all` forces the bot to create a markov chain customized by all of the messages received in the channel, collectively. This will only mess up if this markov bot has absolutely no messages.
+* `!markov chance XX` sets the chance for a sentence to be generated for a given user when they send a message. It has a maximum of the channel's configured chance, to avoid abuse.
 * `!markov ignore` tells the bot to ignore everything you say. This is in case a user doesn't want the bot to record any hint of what the user says.
 * `!markov listen` undoes the markov-ignore command above. The markov bot will start listening and recording frequency of words.
 
