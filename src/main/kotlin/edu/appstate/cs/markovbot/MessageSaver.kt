@@ -8,11 +8,9 @@ import java.util.*
  *     @param markovChain the markov chain that we will be consistently saving
  *     @param sleepTime the number of seconds to sleep in between saves.
  */
-class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String, sleepTime: Int) : Runnable {
-    // Like Caesar and Brutus
-    // Like Jesus and Judas
-    val chainMap = chainMap
-    val saveDirectory = saveDirectory
+class MessageSaver(// Like Caesar and Brutus
+        // Like Jesus and Judas
+        val chainMap: HashMap<String, MarkovChain>, val saveDirectory: String, sleepTime: Int) : Runnable {
     val sleepTime = sleepTime * 1000
     var lastHashcode = chainMap.hashCode()
 
@@ -22,7 +20,7 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
      */
     override fun run() {
         var interrupted = false
-        while(!interrupted) {
+        while (!interrupted) {
             try {
                 Thread.sleep(sleepTime.toLong())
                 saveChains()
@@ -39,7 +37,7 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
      *     Saves the markov chains to the save directory specified.
      */
     private fun saveChains() {
-        if(lastHashcode != chainMap.hashCode()) {
+        if (lastHashcode != chainMap.hashCode()) {
             lastHashcode = chainMap.hashCode()
         } else {
             println("No new messages to save - skipping")
@@ -47,19 +45,19 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
         }
 
         println("Saving markov chains")
-        if(getChainDirFile() == null) {
+        if (getChainDirFile() == null) {
             println("Skipped saving chains")
             return
         }
 
         synchronized(chainMap) {
             for (nickname in chainMap.keys) {
-                if(nickname == ALL_CHAIN)
+                if (nickname == ALL_CHAIN)
                     continue
                 val nickLower = toIrcLowerCase(nickname)
                 println("Saving chain for $nickLower (aka $nickname)")
                 val chain = chainMap[nickLower]
-                chain?.saveToFile("$saveDirectory/$nickLower.json")
+                chain?.saveMarkovFile("$saveDirectory/$nickLower.srl")
             }
         }
     }
@@ -72,10 +70,10 @@ class MessageSaver(chainMap: HashMap<String, MarkovChain>, saveDirectory: String
     private fun getChainDirFile(): File? {
         // make sure directory exists
         val dir = File(saveDirectory)
-        if(dir.exists() && dir.isFile) {
+        if (dir.exists() && dir.isFile) {
             println("Error: file with name $saveDirectory already exists, not as a directory.")
             return null
-        } else if(!dir.exists() && !dir.mkdir()) {
+        } else if (!dir.exists() && !dir.mkdir()) {
             println("Error: could not make $saveDirectory, make sure you have write permissions in the current directory.")
             return null
         }

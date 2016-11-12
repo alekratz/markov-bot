@@ -42,7 +42,7 @@ class MessageListener(val channel: String, val saveDirectory: String, val random
                     println("Constructing all-chain")
                     val allChain = MarkovChain()
                     for(nick in chainMap.keys)
-                        allChain.merge(chainMap[nick])
+                        allChain.merge(chainMap[nick]!!)
                     chainMap[ALL_CHAIN] = allChain
                 }
             }
@@ -183,8 +183,7 @@ class MessageListener(val channel: String, val saveDirectory: String, val random
                 val nickname = path.name.split(".")[0]
                 val nickLower = toIrcLowerCase(nickname)
                 println("Loading chain for $nickLower (aka $nickname)")
-                val chain = MarkovChain()
-                chain.loadFromFile(path.canonicalPath)
+                val chain = loadMarkovFile(path.canonicalPath)
                 usernameCount++
                 if(chainMap.containsKey(nickLower))
                     chainMap[nickLower]!!.merge(chain)

@@ -69,8 +69,8 @@ object CommandHandler {
             if(markovChain != null) {
                 var result = ""
                 while(sentenceCount > 0) {
-                    result += markovChain.generateSentence()
-                    sentenceCount--;
+                    result += markovChain.randomSentence()
+                    sentenceCount--
                 }
                 bot.sendIRC().message(args.listener.channel, "$sendNick: $result")
             }

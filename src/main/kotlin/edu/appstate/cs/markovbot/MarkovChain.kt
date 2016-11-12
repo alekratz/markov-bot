@@ -1,6 +1,9 @@
 package edu.appstate.cs.markovbot
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
+import com.fasterxml.jackson.module.kotlin.*
+import java.io.*
 
 fun List<String>.equals(other: List<String>): Boolean {
     if(this.size != other.size)
@@ -11,18 +14,19 @@ fun List<String>.equals(other: List<String>): Boolean {
 /**
  * @author Alek Ratzloff <alekratz@gmail.com>
  */
-class MarkovChain(val order: Int = 1) {
+class MarkovChain(val order: Int = 1) : Serializable {
 
     // class MarkovLink(var node: MarkovNode, var weight: Int)
-    class MarkovNode(val words: List<String>, val links: MutableMap<String, Int>, var weight: Int = 1) {
-        override fun toString(): String {
-            return words.reduce { total, next -> "$next(${links[next]}) $total" } +
-                    "(${links[words.last()]})"
-        }
-    }
+    data class MarkovNode(val words: List<String>, val links: MutableMap<String, Int>, var weight: Int = 1) : Serializable
 
+    @JsonProperty("chain")
     private var chain: MutableMap<List<String>, MarkovNode> = mutableMapOf()
-    private val random = Random()
+    @Transient lateinit
+    var random: Random
+
+    init {
+        random = Random()
+    }
 
     fun train(sentence: String) {
         val words = sentence.split(" ")
@@ -36,7 +40,7 @@ class MarkovChain(val order: Int = 1) {
                 words
             }
             else {
-                words.subList(offset, offset + order)
+                ArrayList(words.subList(offset, offset + order))
             }
             assert(snippet.isNotEmpty())
             assert(snippet.size <= order)
@@ -71,6 +75,16 @@ class MarkovChain(val order: Int = 1) {
             if(chain.containsKey(words)) {
                 val node = chain[words]!!
                 node.weight += root[words]!!.weight
+                val links = root[words]!!.links
+                links.forEach { link ->
+                    val linkWeight = if(node.links.containsKey(link.key)) {
+                        node.links[link.key]!!
+                    }
+                    else {
+                        0
+                    }
+                    node.links[link.key] = linkWeight + link.value
+                }
             }
             else {
                 chain[words] = root[words]!!
@@ -108,6 +122,30 @@ class MarkovChain(val order: Int = 1) {
             lastList.add(nextWord)
             selected.add(nextWord)
         }
-        return selected.reduce { total, next -> "$total $next"} + "."
+        var sentence = selected.reduce { total, next -> "$total $next"}
+        if(!sentence.endsWith('.'))
+            sentence += "."
+        return sentence
     }
+
+    fun saveJson(path: String) {
+        val mapper = jacksonObjectMapper()
+        mapper.writeValue(File(path), this)
+    }
+
+    fun saveMarkovFile(path: String) {
+        val fileOut = FileOutputStream(path)
+        val objOut = ObjectOutputStream(fileOut)
+        objOut.writeObject(this)
+        objOut.close()
+        fileOut.close()
+    }
+}
+
+fun loadMarkovFile(path: String): MarkovChain {
+    val fileIn = FileInputStream(path)
+    val objIn = ObjectInputStream(fileIn)
+    val chain = objIn.readObject() as MarkovChain
+    chain.random = Random()
+    return chain
 }
