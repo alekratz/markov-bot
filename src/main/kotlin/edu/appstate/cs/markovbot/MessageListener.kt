@@ -21,13 +21,12 @@ private const val FPP = 0.001
  * @author Alek Ratzloff <alekratz@gmail.com>
  *     Documentation on pircbotx: http://thelq.github.io/pircbotx/latest/apidocs/
  */
-class MessageListener(channel: String, saveDirectory: String, randomChance: Double, maxSentences: Int,
-                      chainMap: HashMap<String, MarkovChain>) : ListenerAdapter<PircBotX>() {
+class MessageListener(val channel: String, val saveDirectory: String, val randomChance: Double, val maxSentences: Int,
+                      val chainMap: HashMap<String, MarkovChain>) : ListenerAdapter<PircBotX>() {
     /**
      * Determines if the bot is in the room it is supposed to be in yet.
      */
     var present = false
-    val chainMap = chainMap
     var sentMessageFilter = BloomFilter.create(Funnels.stringFunnel(Charset.defaultCharset()), EXPECTED_INSERTIONS, FPP)
     var messageCount = 0
 
@@ -53,11 +52,6 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
     val ignoreList: HashSet<String> = HashSet()
     val userChances: HashMap<String, Double> = HashMap()
     val gen: Random = Random()
-
-    val channel = channel
-    val saveDirectory = saveDirectory
-    val randomChance = randomChance
-    val maxSentences = maxSentences
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>
@@ -132,7 +126,7 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
         if(gen.nextDouble() < userChances[lowerNick]!!) {
             val markovChain = chainMap[lowerNick]
             if(markovChain != null) {
-                val sentence = markovChain.generateSentence()
+                val sentence = markovChain.randomSentence()
                 event.bot.sendIRC().message(channel, "$sendNick: $sentence")
             }
         }
