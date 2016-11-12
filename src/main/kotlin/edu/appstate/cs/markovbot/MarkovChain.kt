@@ -21,7 +21,7 @@ class MarkovChain(val order: Int = 1) : Serializable {
 
     @JsonProperty("chain")
     private var chain: MutableMap<List<String>, MarkovNode> = mutableMapOf()
-    @Transient lateinit
+    @Transient
     var random: Random
 
     init {
@@ -123,7 +123,7 @@ class MarkovChain(val order: Int = 1) : Serializable {
             selected.add(nextWord)
         }
         var sentence = selected.reduce { total, next -> "$total $next"}
-        if(!sentence.endsWith('.'))
+        if(!(sentence.endsWith('.') || sentence.endsWith('!') || sentence.endsWith('?')))
             sentence += "."
         return sentence
     }
@@ -140,7 +140,12 @@ class MarkovChain(val order: Int = 1) : Serializable {
         objOut.close()
         fileOut.close()
     }
+
+    companion object {
+        private const val serialVersionUID: Long = 8600625900797980690L
+    }
 }
+
 
 fun loadMarkovFile(path: String): MarkovChain {
     val fileIn = FileInputStream(path)
@@ -149,3 +154,4 @@ fun loadMarkovFile(path: String): MarkovChain {
     chain.random = Random()
     return chain
 }
+

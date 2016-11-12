@@ -8,7 +8,7 @@ import org.pircbotx.PircBotX
 class PircBotRunner(theBot: PircBotX) : Runnable {
     val bot = theBot
 
-    public override fun run() {
+    override fun run() {
         bot.startBot()
     }
 }

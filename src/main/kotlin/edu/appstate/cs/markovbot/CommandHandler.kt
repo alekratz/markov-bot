@@ -48,11 +48,11 @@ object CommandHandler {
             return true
         }
 
-        fun forceOrAll(args: CommandArgs): Boolean {
+        fun force(args: CommandArgs, all: Boolean = false): Boolean {
             val bot = args.event.bot
             val sendNick = args.event.user.nick
             val lowerNick = toIrcLowerCase(sendNick)
-            val markovChain = if(sendNick == ALL_CHAIN)
+            val markovChain = if(all)
                 args.listener.allChain
             else
                 args.listener.chainMap[lowerNick]
@@ -77,8 +77,8 @@ object CommandHandler {
             return true
         }
 
-        commandMap["force"] = fun(args: CommandArgs): Boolean { return forceOrAll(args) }
-        commandMap["all"]   = fun(args: CommandArgs): Boolean { return forceOrAll(args) }
+        commandMap["force"] = fun(args: CommandArgs): Boolean { return force(args) }
+        commandMap["all"]   = fun(args: CommandArgs): Boolean { return force(args, true) }
 
         commandMap["about"] = fun(args: CommandArgs): Boolean {
             val bot = args.event.bot

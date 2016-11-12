@@ -179,7 +179,7 @@ class MessageListener(val channel: String, val saveDirectory: String, val random
 
         var usernameCount = 0
         synchronized(chainMap) {
-            for (path in dir.listFiles({ f -> f.extension == "json" }).orEmpty()) {
+            for (path in dir.listFiles({ f -> f.extension == "srl" }).orEmpty()) {
                 val nickname = path.name.split(".")[0]
                 val nickLower = toIrcLowerCase(nickname)
                 println("Loading chain for $nickLower (aka $nickname)")
