@@ -14,7 +14,7 @@ fun List<String>.equals(other: List<String>): Boolean {
 /**
  * @author Alek Ratzloff <alekratz@gmail.com>
  */
-class MarkovChain(val order: Int = 1) : Serializable {
+class MarkovChain(val order: Int) : Serializable {
 
     // class MarkovLink(var node: MarkovNode, var weight: Int)
     data class MarkovNode(val words: List<String>, val links: MutableMap<String, Int>, var weight: Int = 1) : Serializable

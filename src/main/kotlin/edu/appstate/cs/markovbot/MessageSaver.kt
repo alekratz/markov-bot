@@ -57,7 +57,7 @@ class MessageSaver(// Like Caesar and Brutus
                 val nickLower = toIrcLowerCase(nickname)
                 println("Saving chain for $nickLower (aka $nickname)")
                 val chain = chainMap[nickLower]
-                chain?.saveMarkovFile("$saveDirectory/$nickLower.srl")
+                chain?.saveMarkovFile("$saveDirectory/$nickLower.${chain.order}.srl")
             }
         }
     }

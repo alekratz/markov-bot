@@ -22,7 +22,7 @@ private const val FPP = 0.001
  *     Documentation on pircbotx: http://thelq.github.io/pircbotx/latest/apidocs/
  */
 class MessageListener(val channel: String, val saveDirectory: String, val randomChance: Double, val maxSentences: Int,
-                      val chainMap: HashMap<String, MarkovChain>) : ListenerAdapter<PircBotX>() {
+                      val chainMap: HashMap<String, MarkovChain>, val order: Int) : ListenerAdapter<PircBotX>() {
     /**
      * Determines if the bot is in the room it is supposed to be in yet.
      */
@@ -40,7 +40,7 @@ class MessageListener(val channel: String, val saveDirectory: String, val random
             synchronized(chainMap) {
                 if (chainMap[ALL_CHAIN] == null) {
                     println("Constructing all-chain")
-                    val allChain = MarkovChain()
+                    val allChain = MarkovChain(order)
                     for(nick in chainMap.keys)
                         allChain.merge(chainMap[nick]!!)
                     chainMap[ALL_CHAIN] = allChain
@@ -107,7 +107,7 @@ class MessageListener(val channel: String, val saveDirectory: String, val random
         val sendNick = event.user.nick
         val lowerNick = toIrcLowerCase(sendNick)
         synchronized(chainMap) {
-            chainMap.putIfAbsent(lowerNick, MarkovChain())
+            chainMap.putIfAbsent(lowerNick, MarkovChain(this.order))
             val chain = chainMap[lowerNick]!!
             chain.train(msg) // choo choo
         }
@@ -179,11 +179,16 @@ class MessageListener(val channel: String, val saveDirectory: String, val random
 
         var usernameCount = 0
         synchronized(chainMap) {
-            for (path in dir.listFiles({ f -> f.extension == "srl" }).orEmpty()) {
+            for (path in dir.listFiles({ f -> f.extension == "$order.srl" }).orEmpty()) {
                 val nickname = path.name.split(".")[0]
                 val nickLower = toIrcLowerCase(nickname)
                 println("Loading chain for $nickLower (aka $nickname)")
                 val chain = loadMarkovFile(path.canonicalPath)
+                if(chain.order != this.order) {
+                    println("ERROR: chain for $nickLower (aka $nickname) has a different order from the one specified (ours: $order, theirs: ${chain.order}")
+                    println("This user will be skipped and have their chain overwritten")
+                    continue
+                }
                 usernameCount++
                 if(chainMap.containsKey(nickLower))
                     chainMap[nickLower]!!.merge(chain)

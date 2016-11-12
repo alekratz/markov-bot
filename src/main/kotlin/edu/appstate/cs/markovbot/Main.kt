@@ -46,6 +46,12 @@ freenode.hostname = chat.freenode.net
 # freenode.save-every = 3600
 # freenode.#myroom.save-every = 1800
 
+# Optional. Sets the order of the markov chain. Note that if you wish to chain the order of the markov chain, you must
+# delete the original file.
+# The order is recommended to be 1 or 2. A higher order makes sentences more coherent; too high of an order will just
+# parrot back original sentences to users.
+# freenode.order = 1
+
 # Optional. Default servername/chains. The location to save markov chains to. This may be set per-server, or per-channel.
 # These directories may be shared among rooms.
 # freenode.save-directory = freenode/chains
@@ -158,6 +164,7 @@ fun main(args: Array<String>) {
                     ?: props.getProperty("$serverName.random-chance")).toDouble()
             val maxSentences = (props.getProperty("$serverName.$channelName.max-sentences")
                     ?: props.getProperty("$serverName.max-sentences")).toInt()
+            val order = (props.getProperty("$serverName.order") ?: "1").toInt()
 
             // Get if this is a shared chain; if not, create its sharedness
             chainSaves.putIfAbsent(saveDirectory, SaveInfo(saveEvery, HashMap()))
@@ -169,7 +176,8 @@ fun main(args: Array<String>) {
                             saveDirectory,
                             randomChance,
                             maxSentences,
-                            chainMap.chainMap
+                            chainMap.chainMap,
+                            order
                     ))
                     .setMessageDelay(50)
             println("Adding channel $channelName")
