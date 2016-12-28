@@ -21,6 +21,7 @@ Wishlist:
 * Markov chains implemented in Kotlin rather than Java
 * Reloading configuration while still running (if possible)
 * Allow setting the command to invoke the bot (as opposed to !markov)
+* !markov socialstatus, telling the percentage of "worth" a user has in a channel, compared to the rest of the users
 * More to come...
 
 # Rundown
