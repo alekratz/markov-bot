@@ -100,11 +100,12 @@ where COMMANDs consist of:
 
 fun status(args: CommandArgs): Boolean {
     val bot = args.event.bot
-    val sendNick = toIrcLowerCase(args.event.user.nick)
+    val sendNick = args.event.user.nick
+    val sendNickLower = toIrcLowerCase(sendNick)
     val chains = args.listener.chainMap
-    if(!chains.containsKey(sendNick))
+    if(!chains.containsKey(sendNickLower))
         return true
-    val chain = chains[sendNick]
+    val chain = chains[sendNickLower]
     val chainSum = chain!!.sumNodeWeights()
     val totalSum = chains
             .filterNot { v -> v.key == ALL_CHAIN }
