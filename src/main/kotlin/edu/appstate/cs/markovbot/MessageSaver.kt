@@ -77,9 +77,11 @@ class MessageSaver(
         if (dir.exists() && dir.isFile) {
             println("Error: file with name $saveDirectory already exists, not as a directory.")
             return null
-        } else if (!dir.exists() && !dir.mkdir()) {
-            println("Error: could not make $saveDirectory, make sure you have write permissions in the current directory.")
-            return null
+        } else if (!dir.exists()) {
+            if(!dir.mkdir()) {
+                println("Error: could not make $saveDirectory, make sure you have write permissions in the current directory.")
+                return null
+            }
         }
 
         return dir

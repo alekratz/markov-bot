@@ -107,8 +107,9 @@ fun status(args: CommandArgs): Boolean {
     val chain = chains[sendNick]
     val chainSum = chain!!.sumNodeWeights()
     val totalSum = chains
+            .filterNot { v -> v.key == ALL_CHAIN }
             .map { c -> c.value.sumNodeWeights() }
-            .reduce { a, b -> a + b }
+            .sum()
     val socialWorth = chainSum.toDouble() / totalSum.toDouble()
     println("chain sum: $chainSum")
     println("total sum: $totalSum")
