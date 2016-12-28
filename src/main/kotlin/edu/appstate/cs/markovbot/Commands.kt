@@ -114,6 +114,6 @@ fun status(args: CommandArgs): Boolean {
     println("chain sum: $chainSum")
     println("total sum: $totalSum")
     bot.sendIRC().message(args.listener.channel,
-            "$sendNick: You are worth ${socialWorth * 100.0}% of the value of this channel")
+            "$sendNick: You are worth ${(socialWorth * 100.0).format(4)}% of the value of this channel")
     return true
 }

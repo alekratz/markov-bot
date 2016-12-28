@@ -20,6 +20,8 @@ fun toIrcLowerCase(name: String): String {
     return result
 }
 
+fun Double.format(digits: Int) = java.lang.String.format("%.${digits}f", this)
+
 /*
 fun isIrcNicknameEqual(first: String, second: String): Boolean {
     return toIrcLowerCase(first) == toIrcLowerCase(second)
