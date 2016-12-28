@@ -13,7 +13,7 @@ v0.2.0 roadmap:
 * [x] Custom number of sentences generated with !markov force and !markov all
 * [x] User-defined setting of random chance (see [1](https://github.com/alekratz/markov-bot/issues/1))
 * [ ] "Administrator" user(s) who can check the status of the bot, restart, force a save, etc.
-* [ ] Update the package name to be top.intercal, not the edu.appstate.cs because I'm not really at uni anymore :^)
+* [x] Update the package name to be top.intercal, not the edu.appstate.cs because I'm not really at uni anymore :^)
 
 Wishlist:
 
