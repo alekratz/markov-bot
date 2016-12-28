@@ -39,12 +39,14 @@ class MessageSaver(
      *     Saves the markov chains to the save directory specified.
      */
     private fun saveChains() {
+        /*
         if (lastHashcode != chainMap.hashCode()) {
             lastHashcode = chainMap.hashCode()
         } else {
             println("No new messages to save - skipping")
             return
         }
+        */
 
         println("Saving markov chains")
         if (getChainDirFile() == null) {
