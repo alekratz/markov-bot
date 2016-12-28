@@ -1,4 +1,4 @@
-package edu.appstate.cs.markovbot
+package top.intercal.markovbot
 
 import com.google.common.hash.BloomFilter
 import com.google.common.hash.Funnels

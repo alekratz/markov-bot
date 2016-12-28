@@ -1,4 +1,4 @@
-package edu.appstate.cs.markovbot
+package top.intercal.markovbot
 
 import org.pircbotx.PircBotX
 import org.pircbotx.hooks.events.MessageEvent

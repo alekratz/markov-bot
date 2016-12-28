@@ -1,4 +1,4 @@
-group 'edu.appstate.cs.markovbot'
+group 'top.intercal.markovbot'
 version '0.2-SNAPSHOT'
 
 buildscript {
@@ -14,7 +14,7 @@ buildscript {
 apply plugin: 'kotlin'
 apply plugin: 'application'
 
-mainClassName = 'edu.appstate.cs.markovbot.MainKt'
+mainClassName = 'top.intercal.markovbot.MainKt'
 
 sourceCompatibility = 1.7
 

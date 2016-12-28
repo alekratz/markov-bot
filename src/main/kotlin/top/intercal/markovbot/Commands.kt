@@ -1,9 +1,9 @@
-package edu.appstate.cs.markovbot
+package top.intercal.markovbot
 
 /**
  * @author Alek Ratzloff <alekratz@gmail.com>
  */
-fun ignore(args: CommandArgs): Boolean {
+fun ignore(args: top.intercal.markovbot.CommandArgs): Boolean {
     val bot = args.event.bot
     val sendNick = args.event.user.nick
     args.listener.ignoreList.add(sendNick)
@@ -12,7 +12,7 @@ fun ignore(args: CommandArgs): Boolean {
     return true
 }
 
-fun listen(args: CommandArgs): Boolean {
+fun listen(args: top.intercal.markovbot.CommandArgs): Boolean {
     val bot = args.event.bot
     val sendNick = args.event.user.nick
     args.listener.ignoreList.remove(sendNick)
@@ -21,7 +21,7 @@ fun listen(args: CommandArgs): Boolean {
     return true
 }
 
-fun chance(args: CommandArgs): Boolean {
+fun chance(args: top.intercal.markovbot.CommandArgs): Boolean {
     if(args.args.size != 1)
         return false
     val sendNick = args.event.user.nick
@@ -37,7 +37,7 @@ fun chance(args: CommandArgs): Boolean {
     return true
 }
 
-fun force(args: CommandArgs, all: Boolean = false): Boolean {
+fun force(args: top.intercal.markovbot.CommandArgs, all: Boolean = false): Boolean {
     val bot = args.event.bot
     val sendNick = args.event.user.nick
     val lowerNick = toIrcLowerCase(sendNick)
@@ -66,7 +66,7 @@ fun force(args: CommandArgs, all: Boolean = false): Boolean {
     return true
 }
 
-fun about(args: CommandArgs): Boolean {
+fun about(args: top.intercal.markovbot.CommandArgs): Boolean {
     val bot = args.event.bot
     val aboutMessage = """markov-bot ${VersionInfo.STR}
 source located at https://github.com/alekratz/markov-bot"""
@@ -77,7 +77,7 @@ source located at https://github.com/alekratz/markov-bot"""
     return true
 }
 
-fun help(args: CommandArgs): Boolean {
+fun help(args: top.intercal.markovbot.CommandArgs): Boolean {
     val bot = args.event.bot
     val randomChance = args.listener.randomChance
     val helpMessage = """usage: !markov [COMMAND]
@@ -98,7 +98,7 @@ where COMMANDs consist of:
     return true
 }
 
-fun status(args: CommandArgs): Boolean {
+fun status(args: top.intercal.markovbot.CommandArgs): Boolean {
     val bot = args.event.bot
     val sendNick = args.event.user.nick
     val chains = args.listener.chainMap

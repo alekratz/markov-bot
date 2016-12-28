@@ -1,4 +1,4 @@
-package edu.appstate.cs.markovbot
+package top.intercal.markovbot
 
 /**
  * @author Alek Ratzloff <alekratz@gmail.com>

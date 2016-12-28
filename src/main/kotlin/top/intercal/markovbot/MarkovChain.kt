@@ -1,4 +1,4 @@
-package edu.appstate.cs.markovbot
+package top.intercal.markovbot
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
@@ -128,27 +128,45 @@ class MarkovChain(val order: Int) : Serializable {
         return sentence
     }
 
+    fun saveJson(path: String) {
+        val mapper = jacksonObjectMapper()
+        mapper.writeValue(File(path), this)
+    }
+
+    fun saveMarkovFile(path: String) {
+        val fileOut = FileOutputStream(path)
+        val objOut = ObjectOutputStream(fileOut)
+        objOut.writeObject(this)
+        objOut.close()
+        fileOut.close()
+    }
+
     companion object {
         private const val serialVersionUID: Long = 8600625900797980690L
     }
 
-    fun convert(): MutableMap<List<String>, top.intercal.markovbot.MarkovChain.MarkovNode> {
-        val newChain: MutableMap<List<String>, top.intercal.markovbot.MarkovChain.MarkovNode> = mutableMapOf()
-        chain.forEach { h ->
-            val v = h.value
-            newChain.put(h.key, top.intercal.markovbot.MarkovChain.MarkovNode(v.words, v.links, v.weight))
-        }
-        return newChain
+    fun sumNodeWeights(): Int {
+        return chain.map { c -> c.value.weight + c.value.links.map { l -> l.value }.sum() }.sum()
     }
 }
 
 
-fun loadMarkovFile(path: String): top.intercal.markovbot.MarkovChain {
-    val fileIn = FileInputStream(path)
-    val objIn = ObjectInputStream(fileIn)
-    val chain = objIn.readObject() as MarkovChain
-    val newChain = top.intercal.markovbot.MarkovChain(chain.order)
-    newChain.chain = chain.convert()
-    newChain.random = Random()
-    return newChain
+fun loadMarkovFile(path: String): MarkovChain {
+    val chain =
+    try {
+        val fileIn = FileInputStream(path)
+        val objIn = ObjectInputStream(fileIn)
+        val c = objIn.readObject() as MarkovChain
+        objIn.close()
+        fileIn.close()
+        c
+    }
+    catch(ex: ClassCastException) {
+        println("Could not load $path; attempting to convert from MarkovChain")
+        println("(This functionality will be removed in version 1.0)")
+        edu.appstate.cs.markovbot.loadMarkovFile(path)
+    }
+    chain.random = Random()
+    return chain
 }
+

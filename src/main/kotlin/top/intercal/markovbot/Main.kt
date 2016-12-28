@@ -1,4 +1,4 @@
-package edu.appstate.cs.markovbot
+package top.intercal.markovbot
 
 import org.pircbotx.Configuration
 import org.pircbotx.PircBotX
