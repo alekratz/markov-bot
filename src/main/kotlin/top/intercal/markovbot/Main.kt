@@ -31,8 +31,6 @@ fun installSIGINTHandler() {
     Signal.handle(ctrlC, handler)
 }
 
-
-
 /**
  * @author Alek Ratzloff <alekratz@gmail.com>
  *     Main method. Sets up the CTRL-C shutdown hook, loads properties, and starts bot threads.
