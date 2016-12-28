@@ -14,7 +14,7 @@ class MessageSaver(
         // Like Jesus and Judas
         val chainMap: HashMap<String, MarkovChain>, val saveDirectory: String, sleepTime: Int) : Runnable {
     val sleepTime = sleepTime * 1000
-    var lastHashcode = chainMap.hashCode()
+    //var lastHashcode = chainMap.hashCode()
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>

@@ -3,6 +3,7 @@ package edu.appstate.cs.markovbot
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.*
 import com.fasterxml.jackson.module.kotlin.*
+import top.intercal.markovbot.VersionInfo
 import java.io.*
 
 fun List<String>.equals(other: List<String>): Boolean {
@@ -144,6 +145,7 @@ class MarkovChain(val order: Int) : Serializable {
 
 
 fun loadMarkovFile(path: String): top.intercal.markovbot.MarkovChain {
+    assert(VersionInfo.MAJOR == 0, { "This feature is deprecated and must be removed." } )
     val fileIn = FileInputStream(path)
     val objIn = ObjectInputStream(fileIn)
     val chain = objIn.readObject() as MarkovChain
