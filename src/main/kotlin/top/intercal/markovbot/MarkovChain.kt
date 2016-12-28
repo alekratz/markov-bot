@@ -142,7 +142,7 @@ class MarkovChain(val order: Int) : Serializable {
     }
 
     companion object {
-        private const val serialVersionUID: Long = 8600625900797980690L
+        private const val serialVersionUID: Long = 6782223332590079758L
     }
 
     fun sumNodeWeights(): Int {
