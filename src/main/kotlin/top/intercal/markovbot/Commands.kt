@@ -100,7 +100,7 @@ where COMMANDs consist of:
 
 fun status(args: CommandArgs): Boolean {
     val bot = args.event.bot
-    val sendNick = args.event.user.nick
+    val sendNick = toIrcLowerCase(args.event.user.nick)
     val chains = args.listener.chainMap
     if(!chains.containsKey(sendNick))
         return true
