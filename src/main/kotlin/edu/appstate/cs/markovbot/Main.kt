@@ -2,6 +2,8 @@ package edu.appstate.cs.markovbot
 
 import org.pircbotx.Configuration
 import org.pircbotx.PircBotX
+import sun.misc.Signal
+import sun.misc.SignalHandler
 import java.io.File
 import java.util.*
 import javax.net.ssl.SSLSocketFactory
@@ -13,8 +15,8 @@ var threads = ArrayList<Thread>()
  *     Catches a CTRL-C from the terminal. This only works for SIGINT as far as I am aware - if you send the process
  *     some other signal (e.g. SIGKILL, SIGQUIT) to kill it, this will likely not get called.
  */
-class CatchCtrlC : Runnable {
-    override fun run() {
+class CatchCtrlC : SignalHandler {
+    override fun handle(p0: Signal?) {
         println()
         println("ctrl-c caught; shutting down")
         for(t in threads)
@@ -22,6 +24,12 @@ class CatchCtrlC : Runnable {
         for(t in threads)
             t.join()
     }
+}
+
+fun installSIGINTHandler() {
+    val ctrlC = Signal("INT")
+    val handler = CatchCtrlC()
+    Signal.handle(ctrlC, handler)
 }
 
 /**
@@ -45,6 +53,12 @@ freenode.hostname = chat.freenode.net
 # Optional. Default 3600. The number of seconds in between markov chain saves. This can be set per-server or per-channel.
 # freenode.save-every = 3600
 # freenode.#myroom.save-every = 1800
+
+# Optional. Sets the order of the markov chain. Note that if you wish to chain the order of the markov chain, you must
+# delete the original file.
+# The order is recommended to be 1 or 2. A higher order makes sentences more coherent; too high of an order will just
+# parrot back original sentences to users.
+# freenode.order = 1
 
 # Optional. Default servername/chains. The location to save markov chains to. This may be set per-server, or per-channel.
 # These directories may be shared among rooms.
@@ -105,11 +119,13 @@ freenode.hostname = chat.freenode.net
         val port = props.getProperty("$serverName.port") ?: "6667"
         val ssl = props.getProperty("$serverName.ssl") ?: "false"
         val randomChance = props.getProperty("$serverName.random-chance") ?: "0.01"
+        val maxSentences = props.getProperty("$serverName.max-sentences") ?: "1"
         props.setProperty("$serverName.save-every", saveEvery)
         props.setProperty("$serverName.save-directory", saveDirectory)
         props.setProperty("$serverName.port", port)
         props.setProperty("$serverName.ssl", ssl)
         props.setProperty("$serverName.random-chance", randomChance)
+        props.setProperty("$serverName.max-sentences", maxSentences)
     }
 
     return props
@@ -121,7 +137,7 @@ freenode.hostname = chat.freenode.net
  */
 fun main(args: Array<String>) {
     // add jvm shutdown hook
-    Runtime.getRuntime().addShutdownHook(Thread(CatchCtrlC()))
+    installSIGINTHandler()
 
     val props = loadProperties()
     val servers = props.getProperty("servers").split(",")
@@ -135,8 +151,14 @@ fun main(args: Array<String>) {
                 .setServerHostname(props.getProperty("$serverName.hostname"))
                 .setServerPort(props.getProperty("$serverName.port").toInt())
 
-        if(props.getProperty("$serverName.ssl").toBoolean())
-            configBuilder.setSocketFactory(SSLSocketFactory.getDefault())
+        if(props.getProperty("$serverName.ssl").toBoolean()) {
+            val acceptInvalidCerts = props.getProperty("$serverName.ssl.accept-invalid-certs")?.toBoolean() ?: false
+
+            if(acceptInvalidCerts)
+                configBuilder.setSocketFactory(getNaiveSocketFactory())
+            else
+                configBuilder.setSocketFactory(SSLSocketFactory.getDefault())
+        }
 
         // Set up listeners for each channel
         val channels = props.getProperty("$serverName.channels").split(",")
@@ -148,6 +170,9 @@ fun main(args: Array<String>) {
                     ?: "${props.getProperty("$serverName.save-directory")}/${channelName.filterNot { c -> c == '#' }}"
             val randomChance = (props.getProperty("$serverName.$channelName.random-chance")
                     ?: props.getProperty("$serverName.random-chance")).toDouble()
+            val maxSentences = (props.getProperty("$serverName.$channelName.max-sentences")
+                    ?: props.getProperty("$serverName.max-sentences")).toInt()
+            val order = (props.getProperty("$serverName.order") ?: "1").toInt()
 
             // Get if this is a shared chain; if not, create its sharedness
             chainSaves.putIfAbsent(saveDirectory, SaveInfo(saveEvery, HashMap()))
@@ -158,7 +183,9 @@ fun main(args: Array<String>) {
                             channelName,
                             saveDirectory,
                             randomChance,
-                            chainMap.chainMap
+                            maxSentences,
+                            chainMap.chainMap,
+                            order
                     ))
                     .setMessageDelay(50)
             println("Adding channel $channelName")

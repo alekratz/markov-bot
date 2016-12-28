@@ -1,24 +1,34 @@
 package edu.appstate.cs.markovbot
 
+import com.google.common.hash.BloomFilter
+import com.google.common.hash.Funnels
 import org.pircbotx.*
 import org.pircbotx.hooks.ListenerAdapter
 import org.pircbotx.hooks.events.JoinEvent
 import org.pircbotx.hooks.events.MessageEvent
 import java.io.File
+import java.nio.charset.Charset
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 internal const val ALL_CHAIN = "/"
+
+private const val EXPECTED_INSERTIONS = 5000
+private const val FPP = 0.001
 
 /**
  * @author Alek Ratzloff <alekratz@gmail.com>
  *     Documentation on pircbotx: http://thelq.github.io/pircbotx/latest/apidocs/
  */
-class MessageListener(channel: String, saveDirectory: String, randomChance: Double, chainMap: HashMap<String, MarkovChain>) : ListenerAdapter<PircBotX>() {
+class MessageListener(val channel: String, val saveDirectory: String, val randomChance: Double, val maxSentences: Int,
+                      val chainMap: HashMap<String, MarkovChain>, val order: Int) : ListenerAdapter<PircBotX>() {
     /**
      * Determines if the bot is in the room it is supposed to be in yet.
      */
     var present = false
-    val chainMap = chainMap
+    var sentMessageFilter = BloomFilter.create(Funnels.stringFunnel(Charset.defaultCharset()), EXPECTED_INSERTIONS, FPP)
+    var messageCount = 0
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>
@@ -30,9 +40,9 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
             synchronized(chainMap) {
                 if (chainMap[ALL_CHAIN] == null) {
                     println("Constructing all-chain")
-                    val allChain = MarkovChain()
+                    val allChain = MarkovChain(order)
                     for(nick in chainMap.keys)
-                        allChain.merge(chainMap[nick])
+                        allChain.merge(chainMap[nick]!!)
                     chainMap[ALL_CHAIN] = allChain
                 }
             }
@@ -40,11 +50,8 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
             return chainMap[ALL_CHAIN]!!
         }
     val ignoreList: HashSet<String> = HashSet()
+    val userChances: HashMap<String, Double> = HashMap()
     val gen: Random = Random()
-
-    val channel = channel
-    val saveDirectory = saveDirectory
-    val randomChance = randomChance
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>
@@ -59,18 +66,36 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
      *     Handler for a generic message. It routes the message to the correct place if need be (i.e. is a command for
      *     a bot), and records the user's message into their markov chain if it's not a command.
      */
-    public override fun onMessage(event: MessageEvent<PircBotX>) {
-        val serverName = event.bot.serverInfo.serverName
-        val messageChannel = event.channel.name
-        if(messageChannel != channel) return
-
-        println("$serverName ${event.user.nick} : ${event.message}")
+    override fun onMessage(event: MessageEvent<PircBotX>) {
         // if we're not in a room, don't bother listening
         if(!present)
             return
 
+        val messageChannel = event.channel.name
+        if(messageChannel != channel) return
+
+        val serverName = event.bot
+                .serverInfo
+                .serverName
+        val now = LocalDateTime.now()
+                .format(DateTimeFormatter.ISO_TIME)
+        println("$now: $serverName ${event.user.nick} : ${event.message}")
+
         // command was handled
         if(CommandHandler.doCommand(event, this)) return
+
+        // ignore
+        if(ignoreList.contains(event.user.nick))
+            return
+        
+        // increment message count
+        messageCount++
+        if(messageCount % 5000 == 0) {
+            synchronized(sentMessageFilter) {
+                sentMessageFilter = BloomFilter.create(Funnels.stringFunnel(Charset.defaultCharset()),
+                        EXPECTED_INSERTIONS, FPP)
+            }
+        }
 
         // ensure that the message ends in some sort of symbol. otherwise paste in a period at the end
         val msg = if(event.message.endsWith(".") || event.message.endsWith("!") || event.message.endsWith("?")) {
@@ -80,21 +105,28 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
         }
 
         val sendNick = event.user.nick
+        val lowerNick = toIrcLowerCase(sendNick)
         synchronized(chainMap) {
-            chainMap.putIfAbsent(sendNick, MarkovChain())
-            val chain = chainMap[sendNick]!!
+            chainMap.putIfAbsent(lowerNick, MarkovChain(this.order))
+            val chain = chainMap[lowerNick]!!
             chain.train(msg) // choo choo
         }
 
-        synchronized(allChain) {
-            allChain.train(msg)
+        // If the allchain hasn't been initialized, don't worry about it. We only want to start working on it when it's
+        // finally been initliazed via the !markov all command.
+        if(chainMap[ALL_CHAIN] != null) {
+            synchronized(allChain) {
+                allChain.train(msg)
+            }
         }
 
+        // set up the random chance for the user if it hasn't been already
+        userChances.putIfAbsent(lowerNick, randomChance)
         // random chance that a markov chain will be generated
-        if(gen.nextDouble() < randomChance) {
-            val markovChain = chainMap[sendNick]
+        if(gen.nextDouble() < userChances[lowerNick]!!) {
+            val markovChain = chainMap[lowerNick]
             if(markovChain != null) {
-                val sentence = markovChain.generateSentence()
+                val sentence = markovChain.randomSentence()
                 event.bot.sendIRC().message(channel, "$sendNick: $sentence")
             }
         }
@@ -105,7 +137,7 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
      *     Handler for when the bot joins the room. This mostly important to determine whether the bot is present and
      *     thus should listen to messages.
      */
-    public override fun onJoin(event: JoinEvent<PircBotX>) {
+    override fun onJoin(event: JoinEvent<PircBotX>) {
         val nick = event.user.nick
         val joinedChannel = event.channel.name
         if(nick == event.bot.nick && joinedChannel == channel) {
@@ -135,7 +167,7 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
 
     /**
      * @author Alek Ratzloff <alekratz@gmail.com>
-     *     Loads the set of markov chains from the save/load directory.
+     *     Loads the set of markov chains from the save/load M directory.
      */
     private fun loadChains() {
         println("Loading markov chains")
@@ -145,14 +177,25 @@ class MessageListener(channel: String, saveDirectory: String, randomChance: Doub
             return
         }
 
+        var usernameCount = 0
         synchronized(chainMap) {
-            for (path in dir.listFiles({ f -> f.extension == "json" }).orEmpty()) {
+            for (path in dir.listFiles({ f -> f.name.endsWith(".$order.srl") }).orEmpty()) {
                 val nickname = path.name.split(".")[0]
-                println("Loading chain for $nickname")
-                val chain = MarkovChain()
-                chain.loadFromFile(path.canonicalPath)
-                chainMap[nickname] = chain
+                val nickLower = toIrcLowerCase(nickname)
+                println("Loading chain for $nickLower (aka $nickname)")
+                val chain = loadMarkovFile(path.canonicalPath)
+                if(chain.order != this.order) {
+                    println("ERROR: chain for $nickLower (aka $nickname) has a different order from the one specified (ours: $order, theirs: ${chain.order}")
+                    println("This user will be skipped and have their chain overwritten")
+                    continue
+                }
+                usernameCount++
+                if(chainMap.containsKey(nickLower))
+                    chainMap[nickLower]!!.merge(chain)
+                else
+                    chainMap[nickLower] = chain
             }
         }
+        println("I have loaded ${chainMap.keys.size} chains ($usernameCount unique users)")
     }
 }
