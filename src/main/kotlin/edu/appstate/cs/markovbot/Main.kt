@@ -136,9 +136,6 @@ freenode.hostname = chat.freenode.net
  *     Main method. Sets up the CTRL-C shutdown hook, loads properties, and starts bot threads.
  */
 fun main(args: Array<String>) {
-    // add jvm shutdown hook
-    installSIGINTHandler()
-
     val props = loadProperties()
     val servers = props.getProperty("servers").split(",")
     // If we have any shared chain directories, those chains will be shared among the different listeners.
@@ -188,6 +185,7 @@ fun main(args: Array<String>) {
                             order
                     ))
                     .setMessageDelay(50)
+                    .setSocketTimeout(5000)
             println("Adding channel $channelName")
         }
 
@@ -211,6 +209,9 @@ fun main(args: Array<String>) {
         val saver = MessageSaver(chainMap, dir, saveEvery)
         threads.add(Thread(saver))
     }
+
+    // add jvm shutdown hook
+    installSIGINTHandler()
 
     for(t in threads)
         t.start()
