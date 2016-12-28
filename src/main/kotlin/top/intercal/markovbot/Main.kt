@@ -60,16 +60,16 @@ fun main(args: Array<String>) {
         // Set up listeners for each channel
         val channels = props.getProperty("$serverName.channels").split(",")
         for(channelName in channels) {
-            val saveEvery = (props.getProperty("$serverName.$channelName.save-every")
-                    ?: props.getProperty("$serverName.save-every")).toInt()
-            val saveDirectory = props.getProperty("$serverName.$channelName.save-directory")
+            fun prop(p: String): String? { return props.getProperty(p) }
+            fun or(first: String, second: String): String? { return prop(first) ?: prop(second) }
+
+            val saveEvery = or("$serverName.$channelName.save-every", "$serverName.save-every")?.toInt() ?: 3600
+            val saveDirectory = prop("$serverName.$channelName.save-directory")
                     // basically, get the server directory and make a channel subdirectory inside of it
-                    ?: "${props.getProperty("$serverName.save-directory")}/${channelName.filterNot { c -> c == '#' }}"
-            val randomChance = (props.getProperty("$serverName.$channelName.random-chance")
-                    ?: props.getProperty("$serverName.random-chance")).toDouble()
-            val maxSentences = (props.getProperty("$serverName.$channelName.max-sentences")
-                    ?: props.getProperty("$serverName.max-sentences")).toInt()
-            val order = (props.getProperty("$serverName.order") ?: "1").toInt()
+                    ?: "${prop("$serverName.save-directory")}/${channelName.filterNot { c -> c == '#' }}"
+            val randomChance = or("$serverName.$channelName.random-chance", "$serverName.random-chance")?.toDouble() ?: 0.01
+            val maxSentences = or("$serverName.$channelName.max-sentences", "$serverName.max-sentences")?.toInt() ?: 1
+            val order = prop("$serverName.order")?.toInt() ?: 1
 
             // Get if this is a shared chain; if not, create its sharedness
             chainSaves.putIfAbsent(saveDirectory, SaveInfo(saveEvery, HashMap()))
