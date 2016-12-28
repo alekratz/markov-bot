@@ -2,6 +2,8 @@ package edu.appstate.cs.markovbot
 
 import org.pircbotx.Configuration
 import org.pircbotx.PircBotX
+import sun.misc.Signal
+import sun.misc.SignalHandler
 import java.io.File
 import java.util.*
 import javax.net.ssl.SSLSocketFactory
@@ -13,8 +15,8 @@ var threads = ArrayList<Thread>()
  *     Catches a CTRL-C from the terminal. This only works for SIGINT as far as I am aware - if you send the process
  *     some other signal (e.g. SIGKILL, SIGQUIT) to kill it, this will likely not get called.
  */
-class CatchCtrlC : Runnable {
-    override fun run() {
+class CatchCtrlC : SignalHandler {
+    override fun handle(p0: Signal?) {
         println()
         println("ctrl-c caught; shutting down")
         for(t in threads)
@@ -22,6 +24,12 @@ class CatchCtrlC : Runnable {
         for(t in threads)
             t.join()
     }
+}
+
+fun installSIGINTHandler() {
+    val ctrlC = Signal("INT")
+    val handler = CatchCtrlC()
+    Signal.handle(ctrlC, handler)
 }
 
 /**
@@ -129,7 +137,7 @@ freenode.hostname = chat.freenode.net
  */
 fun main(args: Array<String>) {
     // add jvm shutdown hook
-    Runtime.getRuntime().addShutdownHook(Thread(CatchCtrlC()))
+    installSIGINTHandler()
 
     val props = loadProperties()
     val servers = props.getProperty("servers").split(",")

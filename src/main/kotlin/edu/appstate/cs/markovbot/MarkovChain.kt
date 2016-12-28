@@ -144,6 +144,10 @@ class MarkovChain(val order: Int) : Serializable {
     companion object {
         private const val serialVersionUID: Long = 8600625900797980690L
     }
+
+    fun sumNodeWeights(): Int {
+        return chain.map { c -> c.value.weight + c.value.links.map { l -> l.value }.sum() }.sum()
+    }
 }
 
 
