@@ -5,10 +5,12 @@ import java.util.*
 
 /**
  * @author Alek Ratzloff <alekratz@gmail.com>
- *     @param markovChain the markov chain that we will be consistently saving
+ *     @param chainMap the markov chain that we will be consistently saving
+ *     @param saveDirectory the directory to save the chain in
  *     @param sleepTime the number of seconds to sleep in between saves.
  */
-class MessageSaver(// Like Caesar and Brutus
+class MessageSaver(
+        // Like Caesar and Brutus
         // Like Jesus and Judas
         val chainMap: HashMap<String, MarkovChain>, val saveDirectory: String, sleepTime: Int) : Runnable {
     val sleepTime = sleepTime * 1000
