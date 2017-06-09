@@ -26,18 +26,15 @@ object CommandHandler {
 
     fun doCommand(event: MessageEvent<PircBotX>, listener: MessageListener): Boolean {
         val commands = event.message.split(" ")
-        fun catchall(): Boolean {
-            return commandMap["help"]!!(CommandArgs(commands.drop(2).toTypedArray(), event, listener))
-        }
 
         if(event.channel.name != listener.channel) {
             return false
         } else if (commands.isEmpty()) {
-            return catchall()
+            return false
         } else if (commands[0] != "!markov") {
             return false
         } else if(commands.size < 2) {
-            return catchall()
+            return false
         }
 
         // Split up the commands
