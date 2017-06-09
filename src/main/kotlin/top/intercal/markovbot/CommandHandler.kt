@@ -39,7 +39,7 @@ object CommandHandler {
 
         // Split up the commands
         val command = commands[1]
-        val commandEvent = commandMap[command] ?: return catchall()
+        val commandEvent = commandMap[command] ?: return false
 
         return commandEvent(CommandArgs(commands.drop(2).toTypedArray(), event, listener))
     }
